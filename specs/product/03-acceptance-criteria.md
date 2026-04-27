@@ -38,6 +38,19 @@ delivered. The Postman collection must cover all of them.
 - [ ] Non-existing login returns 401 (same error — do not leak
   whether the user exists).
 
+## Authentication & Authorization
+- [ ] Successful login returns 200 with a JWT in the `token` field.
+- [ ] JWT contains claims `sub` (user id) and `role`.
+- [ ] JWT expires after the configured TTL (default 1h).
+- [ ] Protected endpoints without `Authorization` header return 401
+  ProblemDetail.
+- [ ] Protected endpoints with an expired token return 401.
+- [ ] Protected endpoints with a malformed token return 401.
+- [ ] Public endpoints (`POST /auth/login`, `POST /users`) work
+  without a token.
+- [ ] Swagger UI's "Authorize" button accepts a Bearer token and
+  authenticates subsequent calls.
+
 ## Operational
 - [ ] `docker compose up` starts app + PostgreSQL and the API responds.
 - [ ] Swagger reachable at `/swagger-ui.html`.

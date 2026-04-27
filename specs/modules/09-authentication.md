@@ -1,23 +1,25 @@
-# M09 — Authentication
+# M09 — Authentication (with JWT issuance)
 
 ## Goal
-Implement login validation (FR06) using a pluggable Strategy Pattern,
-as defined in ADR-002. Phase 1 ships the database-backed strategy.
-Future phases (JWT, OAuth2) plug in as new adapters with zero changes
-to the use case.
+Implement login validation (FR06) using a pluggable Strategy Pattern
+(ADR-002) and issue a JWT on success (ADR-004). The token will be
+validated by the Spring Security filter introduced in M09b.
 
 ## Scope
 - `AuthenticationStrategyPort` interface in `application.port.out`.
-- `AuthenticationResult` value object (success/failure + optional
-  user data, no token in phase 1).
-- `AuthenticateUserUseCase` interface in `application.port.in`.
-- `AuthenticateUserService` in `application.usecase`.
-- `DatabaseAuthenticationAdapter` in
+- `JwtTokenProviderPort` interface in `application.port.out`.
+- `AuthenticationResult` value object.
+- `AuthenticateUserUseCase` interface and `AuthenticateUserService`.
+- `DatabaseAuthenticationAdapter` (credential check).
+- `JjwtTokenProviderAdapter` (JWT issue + parse) in
   `infrastructure.adapter.out.security`.
 - `InvalidCredentialsException` in `domain.exception`.
 - `AuthController` in `infrastructure.adapter.in.web`.
 - `LoginRequest`, `LoginResponse` DTOs.
-- New handler entry in `GlobalExceptionHandler`.
+- New handler entry in `GlobalExceptionHandler` (401 mapping).
+
+Out of scope (delivered in M09b): the Spring Security filter chain,
+endpoint protection rules, the `JwtAuthenticationFilter` itself.
 
 ## AuthenticationStrategyPort contract
 ```java
@@ -25,26 +27,33 @@ public interface AuthenticationStrategyPort {
     AuthenticationResult authenticate(String login, String rawPassword);
 }
 ```
-Multiple beans of this type may exist in the future. The
-`AuthenticateUserService` depends on the port, not on a concrete
-adapter — Spring will inject the single bean available in phase 1.
-When phase 2 adds JWT, mark the desired adapter with `@Primary` or
-inject a list and pick by config — both options are documented in
-the ADR but NOT implemented here.
+Phase 1 has a single adapter; future strategies plug in here.
+
+## JwtTokenProviderPort contract
+```java
+public interface JwtTokenProviderPort {
+    String generateToken(UUID userId, Role role);
+    Optional<TokenPayload> parseToken(String token);
+}
+
+public record TokenPayload(UUID userId, Role role, Instant expiresAt) {}
+```
+The port lives in `application.port.out`. The use case depends on
+this port — it does not know about JJWT or any signing library.
+`TokenPayload` lives in `application.usecase` (application concern).
 
 ## AuthenticationResult value object
 ```java
 public record AuthenticationResult(
     boolean authenticated,
-    UUID userId,    // null when authenticated == false
-    Role role       // null when authenticated == false
+    UUID userId,    // null on failure
+    Role role,      // null on failure
+    String token    // null on failure (set after successful auth)
 ) {
-    public static AuthenticationResult success(UUID id, Role role) { ... }
+    public static AuthenticationResult success(UUID id, Role role, String token) { ... }
     public static AuthenticationResult failure() { ... }
 }
 ```
-Lives in `application.usecase` (not in domain — it is an
-application-level concept, not a business invariant).
 
 ## AuthenticateUserUseCase contract
 ```java
@@ -53,80 +62,89 @@ public interface AuthenticateUserUseCase {
 }
 ```
 The service:
-1. Delegates entirely to the injected `AuthenticationStrategyPort`.
-2. If the result is failure, throws `InvalidCredentialsException`.
-3. If success, returns the result to the controller.
+1. Calls `authenticationStrategy.authenticate(login, rawPassword)`.
+2. If failure, throws `InvalidCredentialsException`.
+3. If success, calls `jwtTokenProvider.generateToken(userId, role)`,
+   wraps the response with the token and returns it.
 
 ## DatabaseAuthenticationAdapter behavior
+Same as the previous M09 spec:
 1. `userRepository.findByLogin(login)` — if empty, return failure.
 2. `passwordEncoder.matches(rawPassword, user.passwordHash)` — if
    false, return failure.
-3. Otherwise return success with the user's id and role.
+3. Otherwise return success WITHOUT a token (token is added by the
+   use case after the strategy returns).
 
-CRITICAL: the adapter MUST return the **same** failure result
-whether the user does not exist or the password is wrong. No timing
-attack mitigation is required for phase 1, but the response shape
-must not leak which check failed.
+CRITICAL: failure response is identical for unknown login and wrong
+password (no user enumeration leak).
 
-## REST contract
+## JjwtTokenProviderAdapter behavior
+- Algorithm: HS256.
+- Secret: read from `JWT_SECRET` env var. Required to be at least
+  32 bytes; configuration validation fails fast if shorter.
+- Expiration: 1 hour (configurable via `JWT_EXPIRATION_SECONDS`,
+  default 3600).
+- Claims:
+    - `sub` = user id (UUID, as string).
+    - `role` = role name (String).
+    - `iat` and `exp` standard claims.
+- `parseToken` returns empty Optional for: invalid signature,
+  expired token, malformed token. It does NOT throw.
+
+## REST contract (updated)
 - `POST /api/v1/auth/login`
-- Request body (`LoginRequest`):
+- Request:
 ```json
   { "login": "maria", "password": "Senha@123" }
 ```
-- Validation: both fields `@NotBlank`.
-- Success response (`LoginResponse`, 200):
+- Success (200):
 ```json
   {
     "authenticated": true,
     "userId": "f1a2b3c4-...",
-    "role": "CUSTOMER"
+    "role": "CUSTOMER",
+    "token": "eyJhbGciOiJIUzI1NiJ9...",
+    "expiresIn": 3600
   }
 ```
-- Failure response (401, ProblemDetail
-  `type=/errors/unauthorized`):
-```json
-  {
-    "type": "https://api.techchallenge.com/errors/unauthorized",
-    "title": "Credenciais inválidas",
-    "status": 401,
-    "detail": "Login ou senha incorretos.",
-    "instance": "/api/v1/auth/login"
-  }
-```
-- Validation failure (missing field): 400 with the standard
-  validation ProblemDetail.
+- Failure (401, ProblemDetail `type=/errors/unauthorized`): identical
+  body for unknown login and wrong password.
+- Validation failure (400): standard ProblemDetail.
 
-## Rules
-- The endpoint NEVER reveals whether the login exists.
-- `passwordHash` from the User domain object is read by the adapter
-  only — it never crosses into the use case or the controller.
-- No JWT, no session, no cookie in phase 1. The response only states
-  whether the credentials are valid plus minimal user identity.
+## Configuration
+- `application.yml`:
+```yaml
+  security:
+    jwt:
+      secret: ${JWT_SECRET:change-me-in-prod-this-must-be-32-bytes-min}
+      expiration-seconds: ${JWT_EXPIRATION_SECONDS:3600}
+```
+- `prod` profile MUST refuse the default secret (validate at
+  startup; throw if `secret` equals the placeholder).
 
 ## Tests
 - `AuthenticateUserServiceTest` (unit, Mockito):
-    - Strategy returns success → service returns the same result.
-    - Strategy returns failure → service throws
-      `InvalidCredentialsException`.
-- `DatabaseAuthenticationAdapterTest` (unit):
-    - Unknown login → failure.
-    - Known login + wrong password → failure.
-    - Known login + correct password → success with id and role.
+    - Strategy success → token generator called → result includes token.
+    - Strategy failure → throws `InvalidCredentialsException`.
+- `DatabaseAuthenticationAdapterTest`: same as before.
+- `JjwtTokenProviderAdapterTest`:
+    - Generated token is parseable and yields the same `userId`/`role`.
+    - Expired token returns empty Optional from `parseToken`.
+    - Token signed with a different secret returns empty Optional.
+    - Malformed token returns empty Optional.
 - `AuthControllerWebMvcTest`:
-    - 200 with success body on valid credentials.
+    - 200 with body containing `token` on valid credentials.
     - 401 ProblemDetail on wrong password.
-    - 401 ProblemDetail on unknown login (same body shape as above).
+    - 401 ProblemDetail on unknown login (byte-identical body).
     - 400 on missing field.
-- `AuthenticationIT` (Testcontainers): register a user via M06, then
-  authenticate via M09, asserting 200; then attempt with wrong
-  password and assert 401.
+- `AuthenticationIT` (Testcontainers): register user → login →
+  receive valid JWT → parse it and assert claims.
 
 ## Definition of done
 - [ ] All tests green.
-- [ ] Failure response is byte-identical for unknown login vs
-  wrong password.
-- [ ] Architecture tests still green (auth adapter only depends on
-  ports, not on JPA repository directly — it goes through
-  `UserRepositoryPort`).
-- [ ] Commit: `feat(M09): pluggable authentication`.
+- [ ] Token never logged anywhere.
+- [ ] Failure response is byte-identical for unknown login vs wrong
+  password.
+- [ ] `prod` profile fails to start with default JWT secret.
+- [ ] Architecture tests still green.
+- [ ] Commit: `feat(M09): authentication with JWT issuance`.

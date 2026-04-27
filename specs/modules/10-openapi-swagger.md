@@ -23,6 +23,26 @@ Required by NFR05 and explicitly graded in the challenge.
       `components.schemas.ValidationProblemDetail` extending it with
       the `errors` array.
 
+## JWT Bearer scheme (added in M10 because depends on M09b)
+The OpenAPI document MUST declare a Bearer security scheme:
+
+```java
+.components(new Components()
+    .addSecuritySchemes("bearerAuth",
+        new SecurityScheme()
+            .type(SecurityScheme.Type.HTTP)
+            .scheme("bearer")
+            .bearerFormat("JWT")))
+.addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+```
+
+Public endpoints (`POST /auth/login`, `POST /users`) explicitly
+override with empty security via `@SecurityRequirements({})` on the
+controller method, so Swagger UI shows them as not requiring a token.
+
+The Swagger UI "Authorize" button must accept a Bearer token and
+apply it to subsequent calls.
+
 ## Per-endpoint requirements
 For every operation, document:
 - `@Operation(summary, description)` with one-sentence summary.

@@ -13,8 +13,8 @@ supports this PDF.
   `report/screenshots/`.
 
 ## Required sections (per PDF page 5-6)
-1. **Cover** — project name, author (Mauricio Borges Florencio),
-   course (FIAP Pós ADJ), phase, date.
+1. **Cover** — project name, author (Gabriel Andrade Almeida),
+   course (FIAP Pós Tech Arquitetura e Desenvolvimento Java), phase 1, date.
 2. **Architecture description** — synthesizes
    `specs/technical/01-architecture.md` plus a diagram showing
    layers (domain / application / infrastructure) and the request

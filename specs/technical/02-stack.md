@@ -20,6 +20,13 @@
 ## Security utilities
 - spring-security-crypto (BCrypt only — no full Spring Security setup)
 
+## Security
+- spring-boot-starter-security (Spring Security 6.x via Boot 3.3)
+- spring-security-crypto (BCrypt — already used for password hashing)
+- io.jsonwebtoken:jjwt-api:0.12.6
+- io.jsonwebtoken:jjwt-impl:0.12.6 (runtime)
+- io.jsonwebtoken:jjwt-jackson:0.12.6 (runtime)
+
 ## Documentation
 - springdoc-openapi-starter-webmvc-ui 2.6.x
 

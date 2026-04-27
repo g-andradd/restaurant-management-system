@@ -40,10 +40,15 @@ Detailed specs live in `specs/modules/<NN>-<name>.md`.
 
 ## Authentication
 - **M09 — Authentication**
-  AuthenticationStrategyPort, DatabaseAuthenticationAdapter,
-  AuthenticateUserUseCase, POST /api/v1/auth/login.
-  Generic 401 for both invalid password and unknown login
-  (no user enumeration leak).
+  AuthenticationStrategyPort, JwtTokenProviderPort,
+  DatabaseAuthenticationAdapter, JjwtTokenProviderAdapter,
+  AuthenticateUserUseCase, POST /api/v1/auth/login returning JWT.
+  Generic 401 for invalid login/password (no enumeration leak).
+
+- **M09b — Spring Security Filter**
+  SecurityConfig, JwtAuthenticationFilter, endpoint protection,
+  ProblemDetail entry point and access denied handler. Updates
+  WebMvcTests of M06–M08 to authenticate via mock JWT.
 
 ## Delivery
 - **M10 — OpenAPI / Swagger**

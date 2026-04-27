@@ -26,6 +26,11 @@ Mandatory stack: Spring Boot + relational database + Docker Compose.
 - All cross-layer communication via ports (interfaces)
 - Authentication is a Strategy: new auth method = new adapter
 - ArchUnit test enforces all the above — keep it green
+- Authentication: Spring Security 6 + JWT (HS256) via JJWT 0.12
+- Token issuance is a port (JwtTokenProviderPort) — single adapter
+  in phase 1 (Jjwt). The use case never imports JJWT directly.
+- Endpoint policy: POST /auth/login and POST /users are public;
+  everything else under /api/v1 requires Bearer JWT.
 
 ## Language convention
 - Code, comments, identifiers, commit messages, specs → English

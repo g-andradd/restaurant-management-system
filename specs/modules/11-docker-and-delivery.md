@@ -3,8 +3,9 @@
 ## Goal
 Wrap the application for delivery: multi-stage Dockerfile,
 Docker Compose orchestrating app + PostgreSQL, a Postman collection
-covering every acceptance criterion, and a README that gets a fresh
-reviewer running the system in under five minutes.
+covering every acceptance criterion (including the JWT flow), and
+a README that gets a fresh reviewer running the system in under
+five minutes.
 
 ## Scope
 - `Dockerfile` (multi-stage: build with Maven, run with JRE).
@@ -36,82 +37,154 @@ reviewer running the system in under five minutes.
         - `DB_URL=jdbc:postgresql://db:5432/techchallenge`
         - `DB_USERNAME=postgres`
         - `DB_PASSWORD=postgres`
+        - `JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}`
+        - `JWT_EXPIRATION_SECONDS=3600`
     - Depends on `db` (condition: service_healthy).
     - Ports: `8080:8080`.
+- A `.env.example` file at the repo root documents every variable
+  with safe placeholder values. The README explains how to copy
+  it to `.env`.
 
 ## Postman collection
-One folder per acceptance area, each request including:
-- Pre-request scripts when needed (e.g. capture `userId` from a 201
-  response into a collection variable).
-- Tests asserting status code and key fields.
+The collection ships with a **collection-level Authorization** of
+type `Bearer Token` whose value is `{{token}}`. Every protected
+request inherits this automatically.
 
-Folders and requests (every acceptance criterion from
-`03-acceptance-criteria.md` covered):
+The environment file ships with these variables (all empty
+initially, populated by scripts as the runner progresses):
+- `baseUrl` = `http://localhost:8080/api/v1`
+- `token`
+- `customerId`
+- `ownerId`
+- `adminId`
 
-1. **User registration**
-    - Register valid user (CUSTOMER) → expect 201, save `customerId`.
-    - Register valid user (RESTAURANT_OWNER) → expect 201.
-    - Register valid user (ADMIN) → expect 201.
-    - Register duplicate email → expect 409.
-    - Register missing field → expect 400.
-    - Register invalid role → expect 400.
+Folders are executed in order. Each request includes a Tests script
+asserting the status code and key fields, and (where relevant)
+saving values into the environment.
 
-2. **Update user data**
-    - Update existing user → expect 200, assert `updatedAt` advanced.
-    - Update non-existing user → expect 404.
-    - Update with payload containing `password` → expect 200, password
-      unchanged (verify by attempting login afterwards).
+### Folder 0 — Auth setup (must run first)
+Establishes the `{{token}}` for all protected calls below.
+- **Register admin (seed)** — public endpoint, expect 201,
+  save `adminId`.
+- **Login admin** — expect 200, Tests script:
+```js
+  const json = pm.response.json();
+  pm.test("token present", () => pm.expect(json.token).to.be.a("string"));
+  pm.environment.set("token", json.token);
+```
+- **Login admin — wrong password** — expect 401. MUST NOT update
+  `token`.
+- **Login — unknown user** — expect 401. Body byte-identical to the
+  wrong-password case.
 
-3. **Change password**
-    - Valid change → expect 204.
-    - Change for non-existing user → expect 404.
-    - Change with weak password → expect 400.
+### Folder 1 — User registration
+- **Register customer (valid)** — public, expect 201, save
+  `customerId`.
+- **Register restaurant owner (valid)** — public, expect 201, save
+  `ownerId`.
+- **Register duplicate email** — expect 409.
+- **Register missing required field** — expect 400.
+- **Register invalid role** — expect 400.
 
-4. **Delete user**
-    - Delete existing user → expect 204.
-    - Delete non-existing user → expect 404.
+### Folder 2 — Update user data
+- **Update existing user** — protected, expect 200. Tests script
+  asserts `updatedAt` is later than the value captured during
+  registration.
+- **Update non-existing user** — protected, expect 404.
+- **Update payload containing `password` field** — protected,
+  expect 200. Followed by a login attempt with the OLD password
+  asserting 200 (proving the password did not change).
 
-5. **Search by name**
-    - Search hitting multiple users → expect 200, length > 0.
-    - Search with no match → expect 200, length == 0.
-    - Case-insensitive search → expect 200, length > 0.
+### Folder 3 — Change password
+- **Valid change** — protected, expect 204.
+- **Login with new password** — expect 200 (smoke check that the
+  change actually took effect).
+- **Change for non-existing user** — protected, expect 404.
+- **Change with weak password** — protected, expect 400.
 
-6. **Login validation**
-    - Valid credentials → expect 200, `authenticated=true`.
-    - Wrong password → expect 401.
-    - Unknown login → expect 401, body identical to wrong password.
+### Folder 4 — Delete user
+- **Delete existing user** — protected, expect 204.
+- **Delete non-existing user** — protected, expect 404.
 
-Environment file ships:
-- `baseUrl=http://localhost:8080/api/v1`
-- Empty `customerId`, `ownerId`, etc., to be populated by scripts.
+### Folder 5 — Search by name
+- **Search hitting multiple users** — protected, expect 200,
+  length > 0.
+- **Search with no match** — protected, expect 200, length == 0.
+- **Case-insensitive search** — protected, expect 200, length > 0.
+
+### Folder 6 — Authorization edge cases
+Validates the JWT filter behavior in addition to credential checks.
+- **Protected endpoint without Authorization header** — expect 401
+  with `type=/errors/unauthorized`.
+- **Protected endpoint with malformed token** — expect 401.
+- **Protected endpoint with expired token** — expect 401. (Use a
+  hard-coded expired JWT generated once by the developer; document
+  it in the request description.)
+
+### Postman runner expectation
+Running the entire collection in order on a fresh database must
+finish with every test green. The README documents the command:
+newman run postman/tech-challenge.postman_collection.json
+-e postman/tech-challenge.postman_environment.json
 
 ## README.md
 Sections in order:
 1. Project name + one-paragraph description.
-2. Architecture overview (link to `specs/technical/01-architecture.md`).
-3. Stack & versions.
+2. Architecture overview (link to
+   `specs/technical/01-architecture.md`).
+3. Stack & versions (mention Spring Security + JWT explicitly).
 4. How to run locally (dev, with H2):
    ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+   Note: `dev` still requires `JWT_SECRET` — the README shows how to
+   export it inline:
+   export JWT_SECRET=$(openssl rand -base64 48)
 5. How to run with Docker Compose (hom profile, Postgres):
+   cp .env.example .env
+   edit .env, set JWT_SECRET to a 32+ byte random value
    docker compose up --build
-6. Environment variables table.
-7. Swagger URL: `http://localhost:8080/swagger-ui.html`.
+6. **Environment variables table:**
+
+   | Variable                  | Required | Default                | Description                              |
+   |---------------------------|----------|------------------------|------------------------------------------|
+   | `SPRING_PROFILES_ACTIVE`  | yes      | `hom` (in compose)     | `dev` / `hom` / `prod`                   |
+   | `DB_URL`                  | hom/prod | —                      | JDBC URL                                 |
+   | `DB_USERNAME`             | hom/prod | —                      | DB user                                  |
+   | `DB_PASSWORD`             | hom/prod | —                      | DB password                              |
+   | `JWT_SECRET`              | yes      | — (compose fails fast) | HS256 secret, ≥ 32 bytes                 |
+   | `JWT_EXPIRATION_SECONDS`  | no       | `3600`                 | Token TTL                                |
+
+7. Swagger URL: `http://localhost:8080/swagger-ui.html`. Includes a
+   short note: "Click 'Authorize', paste the token returned by
+   `POST /api/v1/auth/login`, and you can call protected endpoints
+   from the UI."
 8. How to run tests (`./mvnw test`).
-9. How to import the Postman collection (path + steps).
-10. Project structure (one paragraph + tree).
-11. Pointer to the technical report PDF.
+9. How to import and run the Postman collection:
+    - Open Postman → Import → select both files in `postman/`.
+    - Select the imported environment.
+    - Run the collection in order (Folder 0 first).
+    - Or via Newman: command shown in section 5.
+10. Project structure (one paragraph + `tree -L 2` output of the
+    `src/` and `specs/` directories).
+11. Pointer to the technical report PDF in `report/`.
 
 ## Tests
-- `DockerComposeIT` (optional, only if you have time): use
-  Testcontainers' `DockerComposeContainer` to spin compose and
-  hit `/actuator/health`.
+- `DockerComposeIT` (optional, only if time allows): use
+  Testcontainers' `DockerComposeContainer` to spin compose and hit
+  `/actuator/health`.
 - Manual checklist (no automation needed):
-    - [ ] Fresh clone → `docker compose up --build` → API responds.
-    - [ ] Postman runner executes the full collection green.
+    - [ ] Fresh clone → `cp .env.example .env` → set `JWT_SECRET` →
+      `docker compose up --build` → API responds.
+    - [ ] Newman runs the full collection green.
+    - [ ] `compose up` fails fast with a clear message if
+      `JWT_SECRET` is missing.
 
 ## Definition of done
-- [ ] `docker compose up --build` succeeds on a clean machine.
-- [ ] Every acceptance criterion in `03-acceptance-criteria.md` has a
-  corresponding green Postman request.
+- [ ] `docker compose up --build` succeeds on a clean machine after
+  copying `.env.example` to `.env`.
+- [ ] Compose fails to start with a clear error if `JWT_SECRET` is
+  not provided.
+- [ ] Every acceptance criterion in `03-acceptance-criteria.md` —
+  including the JWT-related ones — has a corresponding green
+  Postman request.
 - [ ] README walks a stranger from clone to working API in <5 min.
 - [ ] Commit: `feat(M11): docker, postman collection and readme`.
