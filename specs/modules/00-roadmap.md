@@ -55,6 +55,11 @@ Detailed specs live in `specs/modules/<NN>-<name>.md`.
   Postman collection covering all acceptance criteria,
   README with run instructions.
 
+- **M12 — Technical Report**
+  Compiles the official deliverable PDF: architecture description,
+  ER diagram, endpoints, Swagger and Postman screenshots, database
+  structure, Docker run guide.
+
 ## Definition of done per module
 Every module is only "closed" when:
 1. Code compiles and `mvn test` is green.
