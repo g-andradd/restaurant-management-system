@@ -16,3 +16,14 @@
   of M09b. The FIAP brief explicitly allows additional roles if useful.
 - M04: 'data da última alteração' is modeled as Instant (UTC) rather than java.util.Date. Instant
   is the correct modern Java 21 choice — immutable, timezone-safe, ISO-8601 native.
+
+## 2026-04-28 — M05: User Persistence
+
+- M05: The comment "not functional until M02 brings migrations" in application-hom.yml and
+  application-prod.yml was incorrect — the blocking module was M05 (user persistence + first
+  Flyway migration), not M02 (architecture guardrails). Both comments have been removed.
+- M05: Flyway is now enabled in all three profiles (dev, hom, prod). ddl-auto is set to
+  validate in all profiles — Flyway owns the schema; Hibernate only validates it.
+- M05: TIMESTAMP WITH TIME ZONE is used for created_at and updated_at in the users table.
+  Plain TIMESTAMP was rejected because it silently discards timezone info and can corrupt
+  round-trips when the DB server timezone differs from UTC.
