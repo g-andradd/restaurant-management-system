@@ -53,7 +53,7 @@ Implement M01 — Project Skeleton, fully according to its spec.
 
 This includes:
 - pom.xml with all dependencies declared in 02-stack.md.
-- Package structure under com.fiap.techchallenge with package-info.java
+- Package structure under com.fiap.rms with package-info.java
   in each leaf package.
 - application.yml + application-dev.yml + application-hom.yml +
   application-prod.yml.
@@ -101,7 +101,7 @@ Implement M02 — Architecture Guardrails, fully according to its spec.
 
 This includes:
 - ArchitectureTest class with one @Test per architectural rule.
-- DomainException base class in com.fiap.techchallenge.domain.exception.
+- DomainException base class in com.fiap.rms.domain.exception.
 - DomainExceptionTest unit test.
   </tarefa>
 

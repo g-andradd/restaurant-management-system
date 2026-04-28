@@ -5,7 +5,7 @@
 - Maven 4.0+
 
 ## Framework
-- Spring Boot 4.0.x
+- Spring Boot 3.3.x
     - spring-boot-starter-web
     - spring-boot-starter-data-jpa
     - spring-boot-starter-validation
@@ -16,13 +16,12 @@
 - PostgreSQL Driver (runtime, scope `hom`/`prod` profiles)
 - Flyway for migrations (versioned schema, same SQL works on H2 in
   PostgreSQL compatibility mode)
+ 
+## Security (M01 scope)
+- spring-security-crypto (BCrypt only — no full Spring Security setup yet)
 
-## Security utilities
-- spring-security-crypto (BCrypt only — no full Spring Security setup)
-
-## Security
-- spring-boot-starter-security (Spring Security 6.x via Boot 3.3)
-- spring-security-crypto (BCrypt — already used for password hashing)
+## Security (added in M09 — NOT in M01)
+- spring-boot-starter-security
 - io.jsonwebtoken:jjwt-api:0.12.6
 - io.jsonwebtoken:jjwt-impl:0.12.6 (runtime)
 - io.jsonwebtoken:jjwt-jackson:0.12.6 (runtime)

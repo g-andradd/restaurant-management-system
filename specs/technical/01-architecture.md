@@ -6,7 +6,7 @@ with strict package boundaries enforced by ArchUnit tests.
 
 ## Layers and packages
 
-com.fiap.techchallenge
+com.fiap.rms
 ├── domain
 │   ├── model          ← Entities, Value Objects (pure Java, no framework)
 │   └── exception      ← Domain-level business exceptions
