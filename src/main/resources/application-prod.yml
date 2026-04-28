@@ -1,7 +1,3 @@
-# NOTE: This profile is not functional yet.
-# It requires database migrations (delivered in M02) and a running PostgreSQL instance.
-# Attempting to start the application with this profile before M02 will fail. Intentional.
-
 spring:
   datasource:
     url: ${DB_URL}
@@ -11,7 +7,7 @@ spring:
     hibernate:
       ddl-auto: validate
   flyway:
-    enabled: false
+    enabled: true
 
 springdoc:
   swagger-ui:
