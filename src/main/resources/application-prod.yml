@@ -1,0 +1,24 @@
+# NOTE: This profile is not functional yet.
+# It requires database migrations (delivered in M02) and a running PostgreSQL instance.
+# Attempting to start the application with this profile before M02 will fail. Intentional.
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: false
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+logging:
+  level:
+    root: INFO

@@ -1,14 +1,14 @@
 # M01 — Project Skeleton
 
 ## Goal
-Bootstrap a Spring Boot 4.0 / Java 21 / Maven project with the package
+Bootstrap a Spring Boot 3.3.5 / Java 21 / Maven project with the package
 structure, profiles and base configuration defined in the technical
 specs. The application must boot empty (no endpoints, no entities) and
 respond on `/actuator/health`.
 
 ## Scope
 - `pom.xml` with all dependencies declared in `02-stack.md`.
-- Package structure under `com.fiap.techchallenge` matching
+- Package structure under `com.fiap.rms` matching
   `01-architecture.md`.
 - `application.yml` with shared config and three profile files:
   `application-dev.yml`, `application-hom.yml`, `application-prod.yml`.
@@ -22,7 +22,7 @@ in M02 and M03).
 No HTTP API yet. Only `/actuator/health` returning 200.
 
 ## Rules
-- Java 21, Maven 4.0+, Spring Boot 4.0.x.
+- Java 21, Maven 4.0+, Spring Boot 3.3.x.
 - `dev` profile: H2 in-memory, Flyway disabled (no migrations yet),
   H2 console enabled at `/h2-console`.
 - `hom` and `prod` profiles: PostgreSQL connection placeholders via
@@ -47,7 +47,7 @@ No HTTP API yet. Only `/actuator/health` returning 200.
 - org.testcontainers:junit-jupiter (test)
 
 ## Package structure to create (empty packages with package-info.java)
-com.fiap.techchallenge
+com.fiap.rms
 ├── domain
 │   ├── model
 │   └── exception

@@ -29,7 +29,7 @@ Out of scope: any user domain code, any HTTP handler.
 8. Classes named `*Adapter` must live under `infrastructure.adapter..`.
 
 ## DomainException contract
-- `package com.fiap.techchallenge.domain.exception`
+- `package com.fiap.rms.domain.exception`
 - `public abstract class DomainException extends RuntimeException`
 - Constructor `(String message)`.
 - No HTTP knowledge. No status codes.

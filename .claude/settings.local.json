@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./mvnw clean *)",
+      "Bash(curl -s http://localhost:8080/actuator/health)",
+      "Bash(kill 351)",
+      "Bash(pkill -f \"spring-boot:run\")",
+      "Bash(git add *)",
+      "Bash(git rm *)"
+    ]
+  }
+}
