@@ -133,3 +133,24 @@ says otherwise — flag in M07's plan if relevant.
 - M07: GET /users/{id} 404 routes through DomainExceptionHandler
   (UserNotFoundException is in domain.exception), confirming the
   M06 split works as expected for new domain exceptions.
+
+## 2026-04-28 — M08: User Update, Password Change & Delete
+- M08: CRUD complete. 67 tests green. The hexagonal pattern from
+  M06 scaled cleanly through 6 use cases — adding new behavior is
+  a 5-step recipe (port + service + DTO + @Bean + endpoint).
+- M08: UserController now takes 6 use case ports. Tolerable for
+  phase 1 but flagged as a candidate for split (e.g. UserCommand
+  and UserQuery controllers) if more endpoints land in phase 2.
+- M08: PUT semantics intentionally chosen as full replace of the
+  4 mutable fields. Partial updates would be PATCH; out of scope.
+- M08: PATCH /password takes only newPassword. Authorization via
+  current password / JWT belongs to M09. The endpoint is
+  intentionally vulnerable until M09 lands — documented so the
+  M12 report can address security posture honestly.
+- M08: DELETE is hard delete. If phase 2 introduces Order with
+  FK to users, this becomes a problem (FK violation or unwanted
+  cascade). Soft delete (deleted_at column) is the canonical
+  evolution path.
+- M08: Thread.sleep(50) used in IT to ensure Instant.now()
+  monotonicity. Windows clock granularity can collide at sub-50ms
+  intervals despite Java 21 improvements.
