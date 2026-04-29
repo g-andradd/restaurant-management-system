@@ -1,6 +1,7 @@
 package com.fiap.rms.infrastructure.adapter.in.web;
 
 import com.fiap.rms.domain.exception.EmailAlreadyExistsException;
+import com.fiap.rms.domain.exception.UserNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,15 +21,35 @@ public class DomainExceptionHandler {
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ProblemDetail> handle(EmailAlreadyExistsException ex,
                                                 HttpServletRequest request) {
-        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
-        problem.setType(URI.create(TYPE_BASE + "/errors/email-conflict"));
-        problem.setTitle("E-mail já cadastrado");
-        problem.setDetail("Já existe um usuário com o e-mail informado.");
-        problem.setInstance(URI.create(request.getRequestURI()));
-        problem.setProperty("timestamp", Instant.now().toString());
+        return problem(HttpStatus.CONFLICT,
+                TYPE_BASE + "/errors/email-conflict",
+                "E-mail já cadastrado",
+                "Já existe um usuário com o e-mail informado.",
+                request);
+    }
 
-        return ResponseEntity.status(HttpStatus.CONFLICT)
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handle(UserNotFoundException ex,
+                                                HttpServletRequest request) {
+        return problem(HttpStatus.NOT_FOUND,
+                TYPE_BASE + "/errors/user-not-found",
+                "Usuário não encontrado",
+                "Não existe usuário com o id informado.",
+                request);
+    }
+
+    private static ResponseEntity<ProblemDetail> problem(HttpStatus status, String type,
+                                                         String title, String detail,
+                                                         HttpServletRequest request) {
+        ProblemDetail body = ProblemDetail.forStatus(status);
+        body.setType(URI.create(type));
+        body.setTitle(title);
+        body.setDetail(detail);
+        body.setInstance(URI.create(request.getRequestURI()));
+        body.setProperty("timestamp", Instant.now().toString());
+
+        return ResponseEntity.status(status)
                 .contentType(MediaType.APPLICATION_PROBLEM_JSON)
-                .body(problem);
+                .body(body);
     }
 }

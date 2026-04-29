@@ -116,3 +116,20 @@ table (street, number, city, zip_code as columns). If a future user
 story requires multiple addresses per user, this needs to become a
 separate `addresses` table. Out of scope for M07 unless the spec
 says otherwise — flag in M07's plan if relevant.
+
+## 2026-04-28 — M07: User Read & Search
+- M07: Three use cases now wired in UseCaseBeanConfiguration
+  (Register, FindById, SearchByName). The pattern documented in M06
+  scales cleanly — adding a new use case is one @Bean per service.
+- M07: Missing required @RequestParam triggers Spring's
+  MissingServletRequestParameterException, which is a framework
+  exception. New handler in shared.exception.GlobalExceptionHandler
+  converts it to RFC 7807 with the same errors[] shape used for
+  bean-validation 400s. ValidationError was lifted from
+  method-private to class-private record so all three handlers
+  reuse the same JSON structure.
+- M07: Empty search returns 200 with []. This is explicit per spec
+  to distinguish "no users matched" from "endpoint not found".
+- M07: GET /users/{id} 404 routes through DomainExceptionHandler
+  (UserNotFoundException is in domain.exception), confirming the
+  M06 split works as expected for new domain exceptions.
