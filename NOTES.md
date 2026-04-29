@@ -70,3 +70,49 @@ earlier module's scope, the convention is:
 3. Log the discovery here in NOTES.md with date + module that
    surfaced it, so the relatório técnico (M12) can tell the story
    accurately.
+
+## 2026-04-28 — M06: User Registration
+- M06: First end-to-end vertical slice. POST /api/v1/users wires
+  domain → application → persistence → web. 36 tests green
+  (29 prior + 7 new for M06).
+- M06: BCrypt cost 12 chosen for password hashing. Persisted
+  passwordHash starts with `$2a$` (BCrypt default prefix). Plain
+  password is hashed in `RegisterUserService` via `PasswordEncoderPort`
+  BEFORE `User.create(...)` is called — domain never sees plaintext.
+- M06: Password validation regex
+  `^(?=.*[A-Z])(?=.*\d).+$` plus `@Size(min=8, max=72)`. Max 72 is
+  BCrypt's hard limit (longer inputs are silently truncated by the
+  algorithm).
+
+## 2026-04-28 — M06 retroactive: convention discoveries
+The M06 implementation surfaced three convention gaps that were not
+explicit in the earlier specs. All three are now documented in
+`03-conventions.md` and `04-error-handling.md`:
+
+- application layer is strictly framework-free: ArchUnit Rule 2
+  rejects `@Service`, `@Component`, etc., on classes in
+  `application..`. Use case implementations are POJOs registered as
+  Spring beans through explicit `@Bean` methods in
+  `infrastructure.config.UseCaseBeanConfiguration`. The bean's
+  return type is the port interface, not the implementation, so
+  controllers depend on ports.
+
+- exception handler split: `shared.exception.GlobalExceptionHandler`
+  cannot import from `domain.exception` (ArchUnit Rule 4 forbids
+  `shared..` from depending on any project layer). A second advice,
+  `infrastructure.adapter.in.web.DomainExceptionHandler`, was
+  introduced to translate domain exceptions to HTTP. New domain
+  exceptions are wired in this second advice.
+
+- @WebMvcTest with stateless @Component collaborators: use
+  `@Import(MyMapper.class)` to make them available, NOT `@MockBean`.
+  Mock only behavior-carrying collaborators (use case interfaces,
+  external clients, etc.). Stateless mappers run as real beans so
+  the slice test exercises actual mapping logic.
+
+## 2026-04-28 — Decision deferred to M07
+The `Address` value object is currently flattened into the `users`
+table (street, number, city, zip_code as columns). If a future user
+story requires multiple addresses per user, this needs to become a
+separate `addresses` table. Out of scope for M07 unless the spec
+says otherwise — flag in M07's plan if relevant.
