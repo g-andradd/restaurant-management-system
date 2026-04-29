@@ -1,10 +1,12 @@
 package com.fiap.rms.infrastructure.adapter.in.web;
 
 import com.fiap.rms.application.usecase.RegisterUserCommand;
+import com.fiap.rms.application.usecase.UpdateUserCommand;
 import com.fiap.rms.domain.model.Address;
 import com.fiap.rms.domain.model.User;
 import com.fiap.rms.infrastructure.adapter.in.web.dto.AddressRequest;
 import com.fiap.rms.infrastructure.adapter.in.web.dto.RegisterUserRequest;
+import com.fiap.rms.infrastructure.adapter.in.web.dto.UpdateUserRequest;
 import com.fiap.rms.infrastructure.adapter.in.web.dto.UserResponse;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +21,16 @@ public class UserWebMapper {
                 request.login(),
                 request.password(),
                 request.role(),
+                new Address(a.street(), a.number(), a.city(), a.zipCode())
+        );
+    }
+
+    public UpdateUserCommand toCommand(UpdateUserRequest request) {
+        AddressRequest a = request.address();
+        return new UpdateUserCommand(
+                request.name(),
+                request.email(),
+                request.login(),
                 new Address(a.street(), a.number(), a.city(), a.zipCode())
         );
     }
