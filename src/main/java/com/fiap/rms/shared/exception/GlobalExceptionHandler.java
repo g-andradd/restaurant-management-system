@@ -9,13 +9,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -23,11 +23,13 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     private static final String TYPE_BASE = "https://api.techchallenge.com";
 
+    private record ValidationError(String field, String message) {}
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> handle(MethodArgumentNotValidException ex,
                                                 HttpServletRequest request) {
-        List<Map<String, String>> errors = ex.getBindingResult().getFieldErrors().stream()
-                .map(f -> Map.of("field", f.getField(), "message", String.valueOf(f.getDefaultMessage())))
+        List<ValidationError> errors = ex.getBindingResult().getFieldErrors().stream()
+                .map(f -> new ValidationError(f.getField(), String.valueOf(f.getDefaultMessage())))
                 .toList();
 
         ProblemDetail problem = buildProblem(HttpStatus.BAD_REQUEST,
@@ -43,15 +45,30 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ProblemDetail> handle(ConstraintViolationException ex,
                                                 HttpServletRequest request) {
-        List<Map<String, String>> errors = ex.getConstraintViolations().stream()
-                .map(v -> Map.of("field", v.getPropertyPath().toString(),
-                                 "message", v.getMessage()))
+        List<ValidationError> errors = ex.getConstraintViolations().stream()
+                .map(v -> new ValidationError(v.getPropertyPath().toString(), v.getMessage()))
                 .toList();
 
         ProblemDetail problem = buildProblem(HttpStatus.BAD_REQUEST,
                 TYPE_BASE + "/errors/validation",
                 "Dados inválidos",
                 "Um ou mais campos estão inválidos.",
+                request);
+        problem.setProperty("errors", errors);
+
+        return response(HttpStatus.BAD_REQUEST, problem);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ProblemDetail> handle(MissingServletRequestParameterException ex,
+                                                HttpServletRequest request) {
+        List<ValidationError> errors = List.of(
+                new ValidationError(ex.getParameterName(), "parâmetro obrigatório ausente"));
+
+        ProblemDetail problem = buildProblem(HttpStatus.BAD_REQUEST,
+                TYPE_BASE + "/errors/validation",
+                "Parâmetro obrigatório ausente",
+                "Um parâmetro obrigatório está ausente.",
                 request);
         problem.setProperty("errors", errors);
 
