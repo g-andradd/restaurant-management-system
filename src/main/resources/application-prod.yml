@@ -10,9 +10,11 @@ spring:
     enabled: true
 
 springdoc:
-  swagger-ui:
-    enabled: false
   api-docs:
+    path: /v3/api-docs
+    enabled: false
+  swagger-ui:
+    path: /swagger-ui.html
     enabled: false
 
 logging:
