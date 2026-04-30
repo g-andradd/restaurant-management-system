@@ -172,3 +172,26 @@ says otherwise — flag in M07's plan if relevant.
 - M09: Both "unknown login" and "wrong password" paths produce
   byte-identical 401 ProblemDetail bodies (timestamp excluded).
   No information leakage about which field failed validation.
+
+## 2026-04-30 — M09b: Spring Security JWT Filter
+- M09b: Spring Security 6 wired with stateless JWT filter. CSRF
+  disabled, no sessions. JwtAuthenticationFilter never throws —
+  bad tokens result in unauthenticated chain, entry point fires
+  clean 401 ProblemDetail.
+- M09b: 4 @WebMvcTest classes updated with @WithMockUser at class
+  level (UserController, AuthController, GlobalExceptionHandler).
+  Reason: @WebMvcTest auto-loads default SecurityAutoConfiguration
+  (NOT our SecurityConfig), which blocks all requests by default.
+  @WithMockUser is the idiomatic fix for slice tests.
+- M09b: 2 ITs (UserSearchIT, UserUpdateAndDeleteIT) updated with
+  loginAndGetToken helper. Each IT remains self-contained — helper
+  copied verbatim, no base class. Confirms the IT auth flow exercises
+  the real filter chain end-to-end.
+- M09b: H2 console works in dev because frameOptions(sameOrigin)
+  is applied globally. Acceptable trade-off in prod (same-origin
+  iframes only, not arbitrary cross-origin embedding).
+- M09b: ErrorProbeController stays in production code per M03 spec
+  ("remove after M06 if you want; for now it stays so the handler
+  is verifiable in isolation"). Could be removed in M10 cleanup
+  pass, but its endpoints are not security-relevant since
+  GlobalExceptionHandlerTest uses @WithMockUser.

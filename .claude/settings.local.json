@@ -7,7 +7,9 @@
       "Bash(pkill -f \"spring-boot:run\")",
       "Bash(git add *)",
       "Bash(git rm *)",
-      "Bash(mvn clean *)"
+      "Bash(mvn clean *)",
+      "Bash(mvn test *)",
+      "Bash(taskkill /F /PID 37884)"
     ]
   }
 }

@@ -74,6 +74,9 @@ class UserUpdateAndDeleteIT {
         UUID id = UUID.fromString(createJson.get("id").asText());
         Instant updatedAtAfterCreate = Instant.parse(createJson.get("updatedAt").asText());
 
+        // ── Authenticate ─────────────────────────────────────────────────────
+        String authHeader = loginAndGetToken("mariacycle", "Senha@123");
+
         // ── Update profile ───────────────────────────────────────────────────
         Thread.sleep(50);
 
@@ -82,6 +85,7 @@ class UserUpdateAndDeleteIT {
                 new AddressRequest("Rua B", "200", "Rio de Janeiro", "20000-000"));
 
         String updateBody = mockMvc.perform(put("/api/v1/users/{id}", id)
+                        .header("Authorization", authHeader)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateReq)))
                 .andExpect(status().isOk())
@@ -96,7 +100,8 @@ class UserUpdateAndDeleteIT {
         Thread.sleep(50);
 
         // Read current hash before password change
-        String beforePatchBody = mockMvc.perform(get("/api/v1/users/{id}", id))
+        String beforePatchBody = mockMvc.perform(get("/api/v1/users/{id}", id)
+                        .header("Authorization", authHeader))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         Instant updatedAtBeforePatch = Instant.parse(
@@ -105,11 +110,13 @@ class UserUpdateAndDeleteIT {
         ChangePasswordRequest patchReq = new ChangePasswordRequest("NovaSenha@456");
 
         mockMvc.perform(patch("/api/v1/users/{id}/password", id)
+                        .header("Authorization", authHeader)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(patchReq)))
                 .andExpect(status().isNoContent());
 
-        String afterPatchBody = mockMvc.perform(get("/api/v1/users/{id}", id))
+        String afterPatchBody = mockMvc.perform(get("/api/v1/users/{id}", id)
+                        .header("Authorization", authHeader))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         Instant updatedAtAfterPatch = Instant.parse(
@@ -117,10 +124,24 @@ class UserUpdateAndDeleteIT {
         assertThat(updatedAtAfterPatch).isAfter(updatedAtBeforePatch);
 
         // ── Delete ───────────────────────────────────────────────────────────
-        mockMvc.perform(delete("/api/v1/users/{id}", id))
+        mockMvc.perform(delete("/api/v1/users/{id}", id)
+                        .header("Authorization", authHeader))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/api/v1/users/{id}", id))
+        mockMvc.perform(get("/api/v1/users/{id}", id)
+                        .header("Authorization", authHeader))
                 .andExpect(status().isNotFound());
+    }
+
+    private String loginAndGetToken(String login, String password) throws Exception {
+        String body = String.format(
+                "{\"login\":\"%s\",\"password\":\"%s\"}", login, password);
+        String responseBody = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String token = objectMapper.readTree(responseBody).get("token").asText();
+        return "Bearer " + token;
     }
 }

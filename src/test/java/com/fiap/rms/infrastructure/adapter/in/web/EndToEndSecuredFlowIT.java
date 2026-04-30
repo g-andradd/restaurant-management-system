@@ -13,12 +13,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -28,19 +29,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Testcontainers
 @Transactional
-class UserSearchIT {
+class EndToEndSecuredFlowIT {
 
     @Container
     static final PostgreSQLContainer<?> postgres =
             new PostgreSQLContainer<>("postgres:16-alpine");
 
     @DynamicPropertySource
-    static void overrideDataSource(DynamicPropertyRegistry registry) {
+    static void overrideProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
         registry.add("spring.h2.console.enabled", () -> "false");
+        registry.add("security.jwt.secret",
+                () -> "test-secret-must-be-at-least-32-bytes-long-aaaa");
+        registry.add("security.jwt.expiration-seconds", () -> "3600");
     }
 
     @Autowired
@@ -50,35 +54,42 @@ class UserSearchIT {
     private ObjectMapper objectMapper;
 
     @Test
-    void searchByName_caseInsensitive_returnsBothMatches() throws Exception {
-        persist("Maria Silva", "maria@search.com", "mariasilva");
-        persist("MARIA SOUZA", "mariasouza@search.com", "mariasouza");
+    void fullFlow_registerLoginGetUser_securityEnforced() throws Exception {
+        // ── 1. POST /api/v1/users — permitAll, no token needed ───────────────
+        RegisterUserRequest registerRequest = new RegisterUserRequest(
+                "Ana Secured",
+                "ana@secured.com",
+                "anasecured",
+                "Senha@123",
+                Role.CUSTOMER,
+                new AddressRequest("Rua A", "100", "São Paulo", "01000-000")
+        );
 
-        String authHeader = loginAndGetToken("mariasilva", "Senha@123");
-
-        String responseBody = mockMvc.perform(get("/api/v1/users")
-                        .param("name", "maria")
-                        .header("Authorization", authHeader)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        JsonNode json = objectMapper.readTree(responseBody);
-        assertThat(json.isArray()).isTrue();
-        assertThat(json.size()).isEqualTo(2);
-    }
-
-    private void persist(String name, String email, String login) throws Exception {
-        RegisterUserRequest request = new RegisterUserRequest(
-                name, email, login, "Senha@123", Role.CUSTOMER,
-                new AddressRequest("Rua A", "100", "São Paulo", "01000-000"));
-
-        mockMvc.perform(post("/api/v1/users")
+        MvcResult registerResult = mockMvc.perform(post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated());
+                        .content(objectMapper.writeValueAsString(registerRequest)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        JsonNode registeredUser = objectMapper.readTree(
+                registerResult.getResponse().getContentAsString());
+        String userId = registeredUser.get("id").asText();
+
+        // ── 2. GET /api/v1/users/{id} WITHOUT token — must return 401 ────────
+        mockMvc.perform(get("/api/v1/users/{id}", userId))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.type").value(containsString("/errors/unauthorized")))
+                .andExpect(jsonPath("$.status").value(401));
+
+        // ── 3. POST /api/v1/auth/login — capture token ───────────────────────
+        String authHeader = loginAndGetToken("anasecured", "Senha@123");
+
+        // ── 4. GET /api/v1/users/{id} WITH Bearer token — must return 200 ────
+        mockMvc.perform(get("/api/v1/users/{id}", userId)
+                        .header("Authorization", authHeader))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(userId))
+                .andExpect(jsonPath("$.email").value("ana@secured.com"));
     }
 
     private String loginAndGetToken(String login, String password) throws Exception {
