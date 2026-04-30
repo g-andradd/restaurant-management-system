@@ -6,7 +6,8 @@
       "Bash(kill 351)",
       "Bash(pkill -f \"spring-boot:run\")",
       "Bash(git add *)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(mvn clean *)"
     ]
   }
 }

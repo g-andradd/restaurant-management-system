@@ -12,3 +12,8 @@ management:
   endpoint:
     health:
       show-details: always
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:change-me-in-prod-this-must-be-32-bytes-min}
+    expiration-seconds: ${JWT_EXPIRATION_SECONDS:3600}

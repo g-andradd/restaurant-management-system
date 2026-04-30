@@ -133,3 +133,42 @@ says otherwise — flag in M07's plan if relevant.
 - M07: GET /users/{id} 404 routes through DomainExceptionHandler
   (UserNotFoundException is in domain.exception), confirming the
   M06 split works as expected for new domain exceptions.
+
+## 2026-04-28 — M08: User Update, Password Change & Delete
+- M08: CRUD complete. 67 tests green. The hexagonal pattern from
+  M06 scaled cleanly through 6 use cases — adding new behavior is
+  a 5-step recipe (port + service + DTO + @Bean + endpoint).
+- M08: UserController now takes 6 use case ports. Tolerable for
+  phase 1 but flagged as a candidate for split (e.g. UserCommand
+  and UserQuery controllers) if more endpoints land in phase 2.
+- M08: PUT semantics intentionally chosen as full replace of the
+  4 mutable fields. Partial updates would be PATCH; out of scope.
+- M08: PATCH /password takes only newPassword. Authorization via
+  current password / JWT belongs to M09. The endpoint is
+  intentionally vulnerable until M09 lands — documented so the
+  M12 report can address security posture honestly.
+- M08: DELETE is hard delete. If phase 2 introduces Order with
+  FK to users, this becomes a problem (FK violation or unwanted
+  cascade). Soft delete (deleted_at column) is the canonical
+  evolution path.
+- M08: Thread.sleep(50) used in IT to ensure Instant.now()
+  monotonicity. Windows clock granularity can collide at sub-50ms
+  intervals despite Java 21 improvements.
+
+## 2026-04-30 — M09: Authentication with JWT issuance
+- M09: AuthController injects JwtProperties directly to read
+  expiration-seconds for LoginResponse.expiresIn. This couples the
+  web layer to the config layer. Cleaner refactor in phase 2: have
+  JwtTokenProviderPort.generateToken return an IssuedToken record
+  (value + expiresInSeconds), or carry expiresInSeconds inside
+  AuthenticationResult so the controller never touches JwtProperties.
+  Deferred — JwtProperties is a simple record and the coupling is
+  mechanical, not behavioural.
+- M09: AuthenticationStrategyPort returns AuthenticationResult with
+  token=null; the use case (AuthenticateUserService) calls the
+  JwtTokenProviderPort and builds a new AuthenticationResult with
+  the token populated. The adapter never issues tokens — single
+  responsibility held cleanly.
+- M09: Both "unknown login" and "wrong password" paths produce
+  byte-identical 401 ProblemDetail bodies (timestamp excluded).
+  No information leakage about which field failed validation.
