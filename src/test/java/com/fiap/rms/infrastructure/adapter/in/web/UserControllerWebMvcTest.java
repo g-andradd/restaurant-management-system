@@ -2,6 +2,7 @@ package com.fiap.rms.infrastructure.adapter.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fiap.rms.application.port.in.ChangePasswordUseCase;
+import com.fiap.rms.application.port.out.JwtTokenProviderPort;
 import com.fiap.rms.application.port.in.DeleteUserUseCase;
 import com.fiap.rms.application.port.in.FindUserByIdUseCase;
 import com.fiap.rms.application.port.in.RegisterUserUseCase;
@@ -24,7 +25,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+
+import com.fiap.rms.infrastructure.adapter.in.web.security.RestAuthenticationEntryPoint;
+import com.fiap.rms.infrastructure.adapter.in.web.security.RestAccessDeniedHandler;
+import com.fiap.rms.infrastructure.config.SecurityConfig;
 
 import java.util.List;
 import java.util.UUID;
@@ -49,7 +55,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
-@Import(UserWebMapper.class)
+@Import({UserWebMapper.class, SecurityConfig.class,
+        RestAuthenticationEntryPoint.class, RestAccessDeniedHandler.class})
+@WithMockUser
 class UserControllerWebMvcTest {
 
     @Autowired
@@ -57,6 +65,10 @@ class UserControllerWebMvcTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    // JwtAuthenticationFilter is a Filter bean loaded by @WebMvcTest; its port must be mocked
+    @MockBean
+    private JwtTokenProviderPort jwtTokenProvider;
 
     @MockBean
     private RegisterUserUseCase registerUser;

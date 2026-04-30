@@ -1,10 +1,17 @@
 package com.fiap.rms.shared.exception;
 
+import com.fiap.rms.application.port.out.JwtTokenProviderPort;
 import com.fiap.rms.infrastructure.adapter.in.web.ErrorProbeController;
+import com.fiap.rms.infrastructure.adapter.in.web.security.RestAccessDeniedHandler;
+import com.fiap.rms.infrastructure.adapter.in.web.security.RestAuthenticationEntryPoint;
+import com.fiap.rms.infrastructure.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -16,8 +23,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ErrorProbeController.class)
+@Import({SecurityConfig.class, RestAuthenticationEntryPoint.class, RestAccessDeniedHandler.class})
 @ActiveProfiles("dev")
+@WithMockUser
 class GlobalExceptionHandlerTest {
+
+    // JwtAuthenticationFilter is a Filter bean loaded by @WebMvcTest; its port must be mocked
+    @MockBean
+    private JwtTokenProviderPort jwtTokenProvider;
 
     @Autowired
     private MockMvc mockMvc;
