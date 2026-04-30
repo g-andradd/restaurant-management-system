@@ -1,6 +1,7 @@
 package com.fiap.rms.infrastructure.adapter.in.web;
 
 import com.fiap.rms.domain.exception.EmailAlreadyExistsException;
+import com.fiap.rms.domain.exception.InvalidCredentialsException;
 import com.fiap.rms.domain.exception.UserNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -35,6 +36,16 @@ public class DomainExceptionHandler {
                 TYPE_BASE + "/errors/user-not-found",
                 "Usuário não encontrado",
                 "Não existe usuário com o id informado.",
+                request);
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ProblemDetail> handle(InvalidCredentialsException ex,
+                                                HttpServletRequest request) {
+        return problem(HttpStatus.UNAUTHORIZED,
+                TYPE_BASE + "/errors/unauthorized",
+                "Não autenticado",
+                "Credenciais inválidas.",
                 request);
     }
 

@@ -1,13 +1,17 @@
 package com.fiap.rms.infrastructure.config;
 
+import com.fiap.rms.application.port.in.AuthenticateUserUseCase;
 import com.fiap.rms.application.port.in.ChangePasswordUseCase;
 import com.fiap.rms.application.port.in.DeleteUserUseCase;
 import com.fiap.rms.application.port.in.FindUserByIdUseCase;
 import com.fiap.rms.application.port.in.RegisterUserUseCase;
 import com.fiap.rms.application.port.in.SearchUsersByNameUseCase;
 import com.fiap.rms.application.port.in.UpdateUserUseCase;
+import com.fiap.rms.application.port.out.AuthenticationStrategyPort;
+import com.fiap.rms.application.port.out.JwtTokenProviderPort;
 import com.fiap.rms.application.port.out.PasswordEncoderPort;
 import com.fiap.rms.application.port.out.UserRepositoryPort;
+import com.fiap.rms.application.usecase.AuthenticateUserService;
 import com.fiap.rms.application.usecase.ChangePasswordService;
 import com.fiap.rms.application.usecase.DeleteUserService;
 import com.fiap.rms.application.usecase.FindUserByIdService;
@@ -50,5 +54,12 @@ public class UseCaseBeanConfiguration {
     @Bean
     DeleteUserUseCase deleteUserUseCase(UserRepositoryPort userRepository) {
         return new DeleteUserService(userRepository);
+    }
+
+    @Bean
+    AuthenticateUserUseCase authenticateUserUseCase(
+            AuthenticationStrategyPort authenticationStrategy,
+            JwtTokenProviderPort jwtTokenProvider) {
+        return new AuthenticateUserService(authenticationStrategy, jwtTokenProvider);
     }
 }

@@ -154,3 +154,21 @@ says otherwise — flag in M07's plan if relevant.
 - M08: Thread.sleep(50) used in IT to ensure Instant.now()
   monotonicity. Windows clock granularity can collide at sub-50ms
   intervals despite Java 21 improvements.
+
+## 2026-04-30 — M09: Authentication with JWT issuance
+- M09: AuthController injects JwtProperties directly to read
+  expiration-seconds for LoginResponse.expiresIn. This couples the
+  web layer to the config layer. Cleaner refactor in phase 2: have
+  JwtTokenProviderPort.generateToken return an IssuedToken record
+  (value + expiresInSeconds), or carry expiresInSeconds inside
+  AuthenticationResult so the controller never touches JwtProperties.
+  Deferred — JwtProperties is a simple record and the coupling is
+  mechanical, not behavioural.
+- M09: AuthenticationStrategyPort returns AuthenticationResult with
+  token=null; the use case (AuthenticateUserService) calls the
+  JwtTokenProviderPort and builds a new AuthenticationResult with
+  the token populated. The adapter never issues tokens — single
+  responsibility held cleanly.
+- M09: Both "unknown login" and "wrong password" paths produce
+  byte-identical 401 ProblemDetail bodies (timestamp excluded).
+  No information leakage about which field failed validation.
