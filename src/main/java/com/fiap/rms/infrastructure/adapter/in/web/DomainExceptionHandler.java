@@ -4,6 +4,7 @@ import com.fiap.rms.domain.exception.EmailAlreadyExistsException;
 import com.fiap.rms.domain.exception.InvalidCredentialsException;
 import com.fiap.rms.domain.exception.UserNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -14,7 +15,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.net.URI;
 import java.time.Instant;
 
+/**
+ * Handles domain-layer exceptions. Must run BEFORE GlobalExceptionHandler's catch-all.
+ * @Order(1) guarantees this regardless of classpath scan order in the packaged JAR.
+ */
 @RestControllerAdvice
+@Order(1)
 public class DomainExceptionHandler {
 
     private static final String TYPE_BASE = "https://api.techchallenge.com";
