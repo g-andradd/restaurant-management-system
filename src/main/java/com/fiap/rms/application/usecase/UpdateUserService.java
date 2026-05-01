@@ -3,6 +3,7 @@ package com.fiap.rms.application.usecase;
 import com.fiap.rms.application.port.in.UpdateUserUseCase;
 import com.fiap.rms.application.port.out.UserRepositoryPort;
 import com.fiap.rms.domain.exception.EmailAlreadyExistsException;
+import com.fiap.rms.domain.exception.LoginAlreadyExistsException;
 import com.fiap.rms.domain.exception.UserNotFoundException;
 import com.fiap.rms.domain.model.User;
 
@@ -24,6 +25,11 @@ public class UpdateUserService implements UpdateUserUseCase {
         if (!command.email().equals(user.getEmail())) {
             if (userRepository.existsByEmail(command.email())) {
                 throw new EmailAlreadyExistsException(command.email());
+            }
+        }
+        if (!command.login().equals(user.getLogin())) {
+            if (userRepository.existsByLogin(command.login())) {
+                throw new LoginAlreadyExistsException(command.login());
             }
         }
 

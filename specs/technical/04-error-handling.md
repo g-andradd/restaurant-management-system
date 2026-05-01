@@ -35,6 +35,7 @@ exceptions are wired here, NOT in `GlobalExceptionHandler`.
 | Exception                           | Status | type (URI suffix)        |
 |-------------------------------------|--------|--------------------------|
 | EmailAlreadyExistsException         | 409    | /errors/email-conflict   |
+| LoginAlreadyExistsException         | 409    | /errors/login-conflict   |
 | UserNotFoundException               | 404    | /errors/user-not-found   |
 | InvalidCredentialsException         | 401    | /errors/unauthorized     |
 | InvalidUserDataException            | 400    | /errors/invalid-user     |

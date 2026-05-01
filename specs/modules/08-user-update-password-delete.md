@@ -31,6 +31,8 @@ public interface DeleteUserUseCase {
 - All three throw `UserNotFoundException` if id is missing.
 - `update` checks email uniqueness if the email actually changed; on
   collision throws `EmailAlreadyExistsException`.
+- `update` checks login uniqueness if the login actually changed; on
+  collision throws `LoginAlreadyExistsException`.
 - `changePassword` hashes via `PasswordEncoderPort` before delegating
   to `User.changePassword(hash)`.
 
@@ -40,7 +42,7 @@ public interface DeleteUserUseCase {
       validation rules as registration, no password field at all).
     - 200 with updated `UserResponse`.
     - 404 if user not found.
-    - 409 if email collides with another user.
+    - 409 if email or login collides with another user.
     - 400 on validation errors.
 
 - `PATCH /api/v1/users/{id}/password`
@@ -65,11 +67,12 @@ public interface DeleteUserUseCase {
 
 ## Tests
 - Unit tests for all three services (Mockito), including the
-  email-collision branch on update.
+  email-collision and login-collision branches on update.
 - `UserControllerWebMvcTest` extended:
     - 200 on valid `PUT`.
     - 404 on `PUT` of missing user.
     - 409 on `PUT` causing email collision.
+    - 409 on `PUT` causing login collision.
     - 204 on valid `PATCH password`.
     - 400 on `PATCH password` with weak password.
     - 204 on valid `DELETE`.

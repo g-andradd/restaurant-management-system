@@ -2,6 +2,7 @@ package com.fiap.rms.infrastructure.adapter.in.web;
 
 import com.fiap.rms.domain.exception.EmailAlreadyExistsException;
 import com.fiap.rms.domain.exception.InvalidCredentialsException;
+import com.fiap.rms.domain.exception.LoginAlreadyExistsException;
 import com.fiap.rms.domain.exception.UserNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.annotation.Order;
@@ -32,6 +33,16 @@ public class DomainExceptionHandler {
                 TYPE_BASE + "/errors/email-conflict",
                 "E-mail já cadastrado",
                 "Já existe um usuário com o e-mail informado.",
+                request);
+    }
+
+    @ExceptionHandler(LoginAlreadyExistsException.class)
+    public ResponseEntity<ProblemDetail> handle(LoginAlreadyExistsException ex,
+                                                HttpServletRequest request) {
+        return problem(HttpStatus.CONFLICT,
+                TYPE_BASE + "/errors/login-conflict",
+                "Login já cadastrado",
+                "Já existe um usuário com o login informado.",
                 request);
     }
 
