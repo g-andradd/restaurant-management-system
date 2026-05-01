@@ -18,6 +18,7 @@ public interface UserRepositoryPort {
     List<User> findByNameContainingIgnoreCase(String term);
 
     boolean existsByEmail(String email);
+    boolean existsByLogin(String login);
 
     void deleteById(UUID id);
 }

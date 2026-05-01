@@ -3,6 +3,7 @@ package com.fiap.rms.application.usecase;
 import com.fiap.rms.application.port.out.PasswordEncoderPort;
 import com.fiap.rms.application.port.out.UserRepositoryPort;
 import com.fiap.rms.domain.exception.EmailAlreadyExistsException;
+import com.fiap.rms.domain.exception.LoginAlreadyExistsException;
 import com.fiap.rms.domain.model.Address;
 import com.fiap.rms.domain.model.Role;
 import com.fiap.rms.domain.model.User;
@@ -43,6 +44,7 @@ class RegisterUserServiceTest {
                 "Senha@123", Role.CUSTOMER, ADDRESS);
 
         when(userRepository.existsByEmail("joao@example.com")).thenReturn(false);
+        when(userRepository.existsByLogin("joaosilva")).thenReturn(false);
         when(passwordEncoder.encode("Senha@123")).thenReturn("$2a$12$hashedValue");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -76,6 +78,7 @@ class RegisterUserServiceTest {
                 "Plain@123", Role.CUSTOMER, ADDRESS);
 
         when(userRepository.existsByEmail("ana@example.com")).thenReturn(false);
+        when(userRepository.existsByLogin("anadoe")).thenReturn(false);
         when(passwordEncoder.encode("Plain@123")).thenReturn("$2a$12$bcryptHash");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -87,5 +90,21 @@ class RegisterUserServiceTest {
         assertThat(saved.getPasswordHash())
                 .isNotEqualTo("Plain@123")
                 .isEqualTo("$2a$12$bcryptHash");
+    }
+
+    @Test
+    void register_duplicateLogin_throwsLoginAlreadyExistsException() {
+        RegisterUserCommand command = new RegisterUserCommand(
+                "Maria", "maria@example.com", "maria",
+                "Senha@123", Role.CUSTOMER, ADDRESS);
+
+        when(userRepository.existsByEmail("maria@example.com")).thenReturn(false);
+        when(userRepository.existsByLogin("maria")).thenReturn(true);
+
+        assertThatThrownBy(() -> service.register(command))
+                .isInstanceOf(LoginAlreadyExistsException.class);
+
+        verify(userRepository, never()).save(any());
+        verify(passwordEncoder, never()).encode(anyString());
     }
 }

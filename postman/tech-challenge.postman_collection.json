@@ -23,20 +23,33 @@
         {
           "name": "Register admin (seed)",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"name\": \"Tech Admin\",\n  \"email\": \"admin@techchallenge.com\",\n  \"login\": \"techadmin\",\n  \"password\": \"Admin@1234\",\n  \"role\": \"ADMIN\",\n  \"address\": {\n    \"street\": \"Av. Paulista\",\n    \"number\": \"1000\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01310-100\"\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/users",
-              "host": ["{{baseUrl}}"],
-              "path": ["users"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
             }
           },
           "event": [
@@ -60,20 +73,34 @@
         {
           "name": "Login admin",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"login\": \"techadmin\",\n  \"password\": \"Admin@1234\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             }
           },
           "event": [
@@ -97,20 +124,34 @@
         {
           "name": "Login admin — wrong password",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"login\": \"techadmin\",\n  \"password\": \"WrongPassword@1\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             }
           },
           "event": [
@@ -132,20 +173,34 @@
           "name": "Login — unknown user",
           "description": "Non-existing login returns 401 with an identical body to wrong-password — the server does not reveal whether the user exists.",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"login\": \"ghostuser99\",\n  \"password\": \"WrongPass@1\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             }
           },
           "event": [
@@ -172,20 +227,33 @@
         {
           "name": "Register customer (valid)",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@example.com\",\n  \"login\": \"joaosilva\",\n  \"password\": \"Senha@123\",\n  \"role\": \"CUSTOMER\",\n  \"address\": {\n    \"street\": \"Rua das Flores\",\n    \"number\": \"42\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01310-100\"\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/users",
-              "host": ["{{baseUrl}}"],
-              "path": ["users"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
             }
           },
           "event": [
@@ -208,20 +276,33 @@
         {
           "name": "Register restaurant owner (valid)",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"name\": \"Carlos Restaurante\",\n  \"email\": \"carlos@restaurant.com\",\n  \"login\": \"carlosrest\",\n  \"password\": \"Senha@123\",\n  \"role\": \"RESTAURANT_OWNER\",\n  \"address\": {\n    \"street\": \"Rua Consolação\",\n    \"number\": \"200\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01302-000\"\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/users",
-              "host": ["{{baseUrl}}"],
-              "path": ["users"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
             }
           },
           "event": [
@@ -243,20 +324,33 @@
         {
           "name": "Register duplicate email",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"name\": \"João Silva 2\",\n  \"email\": \"joao@example.com\",\n  \"login\": \"joaosilva2\",\n  \"password\": \"Senha@123\",\n  \"role\": \"CUSTOMER\",\n  \"address\": {\n    \"street\": \"Rua das Flores\",\n    \"number\": \"42\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01310-100\"\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/users",
-              "host": ["{{baseUrl}}"],
-              "path": ["users"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
             }
           },
           "event": [
@@ -277,20 +371,33 @@
         {
           "name": "Register missing required field",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"name\": \"\",\n  \"email\": \"newuser@example.com\",\n  \"login\": \"newuser1\",\n  \"password\": \"Senha@123\",\n  \"role\": \"CUSTOMER\",\n  \"address\": {\n    \"street\": \"Rua A\",\n    \"number\": \"1\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01000-000\"\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/users",
-              "host": ["{{baseUrl}}"],
-              "path": ["users"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
             }
           },
           "event": [
@@ -313,20 +420,33 @@
           "name": "Register invalid role",
           "description": "Sends role: null to trigger @NotNull validation — the server returns 400 with a ValidationProblemDetail.",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"name\": \"Ana Teste\",\n  \"email\": \"ana@example.com\",\n  \"login\": \"anatesteuser\",\n  \"password\": \"Senha@123\",\n  \"role\": null,\n  \"address\": {\n    \"street\": \"Rua B\",\n    \"number\": \"2\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01000-000\"\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/users",
-              "host": ["{{baseUrl}}"],
-              "path": ["users"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
             }
           },
           "event": [
@@ -338,6 +458,44 @@
                   "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
                   "const json = pm.response.json();",
                   "pm.test(\"validation type\", () => pm.expect(json.type).to.include(\"/errors/validation\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register duplicate login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Outro Usuário\",\n  \"email\": \"outro@example.com\",\n  \"login\": \"joaosilva\",\n  \"password\": \"Senha@123\",\n  \"role\": \"CUSTOMER\",\n  \"address\": {\n    \"street\": \"Rua C\",\n    \"number\": \"33\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01100-000\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"login conflict type\", () => pm.expect(json.type).to.include(\"/errors/login-conflict\"));"
                 ]
               }
             }
@@ -354,17 +512,29 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"name\": \"Tech Admin Updated\",\n  \"email\": \"admin@techchallenge.com\",\n  \"login\": \"techadmin\",\n  \"address\": {\n    \"street\": \"Rua Augusta\",\n    \"number\": \"500\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01305-100\"\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/users/{{adminId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{adminId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{adminId}}"
+              ]
             }
           },
           "event": [
@@ -390,17 +560,29 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"name\": \"Ghost User\",\n  \"email\": \"ghost@example.com\",\n  \"login\": \"ghostlogin\",\n  \"address\": {\n    \"street\": \"Rua X\",\n    \"number\": \"1\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01000-000\"\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/users/00000000-0000-0000-0000-000000000000",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "00000000-0000-0000-0000-000000000000"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "00000000-0000-0000-0000-000000000000"
+              ]
             }
           },
           "event": [
@@ -423,17 +605,29 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"name\": \"Tech Admin Updated\",\n  \"email\": \"admin@techchallenge.com\",\n  \"login\": \"techadmin\",\n  \"password\": \"HackerPassword@1\",\n  \"address\": {\n    \"street\": \"Rua Augusta\",\n    \"number\": \"500\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01305-100\"\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/users/{{adminId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{adminId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{adminId}}"
+              ]
             }
           },
           "event": [
@@ -455,20 +649,34 @@
           "name": "Login with old password after update",
           "description": "Proves the update endpoint did NOT change the password — login with the original 'Admin@1234' must still return 200.",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"login\": \"techadmin\",\n  \"password\": \"Admin@1234\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             }
           },
           "event": [
@@ -480,6 +688,49 @@
                   "pm.test(\"status 200 — password unchanged\", () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
                   "pm.test(\"authenticated\", () => pm.expect(json.authenticated).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update with duplicate login",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tech Admin Updated\",\n  \"email\": \"admin@techchallenge.com\",\n  \"login\": \"joaosilva\",\n  \"address\": {\n    \"street\": \"Rua Augusta\",\n    \"number\": \"500\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01305-100\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{adminUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{adminUserId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"login conflict type\", () => pm.expect(json.type).to.include(\"/errors/login-conflict\"));"
                 ]
               }
             }
@@ -496,17 +747,30 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"newPassword\": \"NovaSenha@1\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/users/{{customerId}}/password",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{customerId}}", "password"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{customerId}}",
+                "password"
+              ]
             }
           },
           "event": [
@@ -525,20 +789,34 @@
           "name": "Login with new password",
           "description": "Smoke check — verifies the password change actually took effect.",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"login\": \"joaosilva\",\n  \"password\": \"NovaSenha@1\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             }
           },
           "event": [
@@ -560,17 +838,30 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"newPassword\": \"ValidPass@1\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/users/00000000-0000-0000-0000-000000000000/password",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "00000000-0000-0000-0000-000000000000", "password"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "00000000-0000-0000-0000-000000000000",
+                "password"
+              ]
             }
           },
           "event": [
@@ -592,17 +883,30 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"newPassword\": \"weak\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/users/{{customerId}}/password",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{customerId}}", "password"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{customerId}}",
+                "password"
+              ]
             }
           },
           "event": [
@@ -632,8 +936,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users/{{ownerId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{ownerId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{ownerId}}"
+              ]
             }
           },
           "event": [
@@ -655,8 +964,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users/00000000-0000-0000-0000-000000000000",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "00000000-0000-0000-0000-000000000000"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "00000000-0000-0000-0000-000000000000"
+              ]
             }
           },
           "event": [
@@ -686,10 +1000,17 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users?name=a",
-              "host": ["{{baseUrl}}"],
-              "path": ["users"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
               "query": [
-                { "key": "name", "value": "a" }
+                {
+                  "key": "name",
+                  "value": "a"
+                }
               ]
             }
           },
@@ -715,10 +1036,17 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users?name=xyzzy999",
-              "host": ["{{baseUrl}}"],
-              "path": ["users"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
               "query": [
-                { "key": "name", "value": "xyzzy999" }
+                {
+                  "key": "name",
+                  "value": "xyzzy999"
+                }
               ]
             }
           },
@@ -744,10 +1072,17 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users?name=ADMIN",
-              "host": ["{{baseUrl}}"],
-              "path": ["users"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
               "query": [
-                { "key": "name", "value": "ADMIN" }
+                {
+                  "key": "name",
+                  "value": "ADMIN"
+                }
               ]
             }
           },
@@ -775,13 +1110,20 @@
           "name": "Protected — no Authorization header",
           "description": "No Authorization header at all. The filter skips (nothing to parse) and the entry point fires with 401.",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users/{{adminId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{adminId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{adminId}}"
+              ]
             }
           },
           "event": [
@@ -803,15 +1145,25 @@
           "name": "Protected — malformed token",
           "description": "Authorization header present but the token is not a valid JWT structure. parseToken() returns Optional.empty(), entry point fires with 401.",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer not.a.jwt.token" }
+              {
+                "key": "Authorization",
+                "value": "Bearer not.a.jwt.token"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/users/{{adminId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{adminId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{adminId}}"
+              ]
             }
           },
           "event": [
@@ -832,7 +1184,9 @@
           "name": "Protected — wrong-signature token",
           "description": "Well-formed JWT (valid header+payload base64url) but signed with a DIFFERENT key than the server's JWT_SECRET. JJWT throws SignatureException, caught in JjwtTokenProviderAdapter.parseToken(), returns Optional.empty() → 401. This is the portable equivalent of an expired-token test: same filter path, no dependency on runtime JWT_SECRET.",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [
               {
@@ -842,8 +1196,13 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/users/{{adminId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "{{adminId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{adminId}}"
+              ]
             }
           },
           "event": [
