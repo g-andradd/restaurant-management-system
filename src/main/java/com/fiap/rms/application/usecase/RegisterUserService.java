@@ -4,6 +4,7 @@ import com.fiap.rms.application.port.in.RegisterUserUseCase;
 import com.fiap.rms.application.port.out.PasswordEncoderPort;
 import com.fiap.rms.application.port.out.UserRepositoryPort;
 import com.fiap.rms.domain.exception.EmailAlreadyExistsException;
+import com.fiap.rms.domain.exception.LoginAlreadyExistsException;
 import com.fiap.rms.domain.model.User;
 
 public class RegisterUserService implements RegisterUserUseCase {
@@ -21,6 +22,9 @@ public class RegisterUserService implements RegisterUserUseCase {
     public User register(RegisterUserCommand command) {
         if (userRepository.existsByEmail(command.email())) {
             throw new EmailAlreadyExistsException(command.email());
+        }
+        if (userRepository.existsByLogin(command.login())) {
+            throw new LoginAlreadyExistsException(command.login());
         }
 
         String encodedPassword = passwordEncoder.encode(command.password());

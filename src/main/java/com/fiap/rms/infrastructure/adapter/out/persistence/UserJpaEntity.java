@@ -33,7 +33,7 @@ class UserJpaEntity {
     @Column(name = "email", nullable = false, length = 255, unique = true)
     private String email;
 
-    @Column(name = "login", nullable = false, length = 60)
+    @Column(name = "login", nullable = false, length = 60, unique = true)
     private String login;
 
     @Column(name = "password_hash", nullable = false, length = 255)

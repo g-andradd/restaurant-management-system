@@ -124,18 +124,18 @@ public class UserController {
             ),
             @ApiResponse(
                     responseCode = "409",
-                    description = "E-mail já cadastrado no sistema",
+                    description = "E-mail ou login já cadastrado no sistema",
                     content = @Content(
                             mediaType = "application/problem+json",
                             schema = @Schema(ref = "#/components/schemas/ProblemDetail"),
                             examples = @ExampleObject(
-                                    name = "E-mail duplicado",
+                                    name = "Login duplicado",
                                     value = """
                                             {
-                                              "type": "https://api.techchallenge.com/errors/email-conflict",
-                                              "title": "Conflito de e-mail",
+                                              "type": "https://api.techchallenge.com/errors/login-conflict",
+                                              "title": "Conflito de login",
                                               "status": 409,
-                                              "detail": "E-mail 'maria@exemplo.com.br' já está em uso.",
+                                              "detail": "Login 'mariasilva' já está em uso.",
                                               "timestamp": "2026-04-30T12:00:00Z"
                                             }"""
                             )
@@ -354,18 +354,18 @@ public class UserController {
             ),
             @ApiResponse(
                     responseCode = "409",
-                    description = "E-mail já cadastrado por outro usuário",
+                    description = "E-mail ou login já cadastrado por outro usuário",
                     content = @Content(
                             mediaType = "application/problem+json",
                             schema = @Schema(ref = "#/components/schemas/ProblemDetail"),
                             examples = @ExampleObject(
-                                    name = "E-mail duplicado",
+                                    name = "Login duplicado",
                                     value = """
                                             {
-                                              "type": "https://api.techchallenge.com/errors/email-conflict",
-                                              "title": "Conflito de e-mail",
+                                              "type": "https://api.techchallenge.com/errors/login-conflict",
+                                              "title": "Conflito de login",
                                               "status": 409,
-                                              "detail": "E-mail 'maria@exemplo.com.br' já está em uso.",
+                                              "detail": "Login 'mariasilva' já está em uso.",
                                               "timestamp": "2026-04-30T12:00:00Z"
                                             }"""
                             )

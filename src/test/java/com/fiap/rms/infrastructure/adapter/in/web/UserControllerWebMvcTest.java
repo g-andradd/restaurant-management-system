@@ -9,6 +9,7 @@ import com.fiap.rms.application.port.in.RegisterUserUseCase;
 import com.fiap.rms.application.port.in.SearchUsersByNameUseCase;
 import com.fiap.rms.application.port.in.UpdateUserUseCase;
 import com.fiap.rms.domain.exception.EmailAlreadyExistsException;
+import com.fiap.rms.domain.exception.LoginAlreadyExistsException;
 import com.fiap.rms.domain.exception.UserNotFoundException;
 import com.fiap.rms.domain.model.Address;
 import com.fiap.rms.domain.model.Role;
@@ -157,6 +158,19 @@ class UserControllerWebMvcTest {
                 .andExpect(jsonPath("$.status").value(409));
     }
 
+    @Test
+    void register_duplicateLogin_returns409() throws Exception {
+        when(registerUser.register(any()))
+                .thenThrow(new LoginAlreadyExistsException("mariasilva"));
+
+        mockMvc.perform(post("/api/v1/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRegisterRequest())))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.type").value(containsString("/errors/login-conflict")))
+                .andExpect(jsonPath("$.status").value(409));
+    }
+
     // ── GET /api/v1/users/{id} ──────────────────────────────────────────────
 
     @Test
@@ -268,6 +282,19 @@ class UserControllerWebMvcTest {
                         .content(objectMapper.writeValueAsString(validUpdateRequest())))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.type").value(containsString("/errors/email-conflict")));
+    }
+
+    @Test
+    void update_loginCollision_returns409() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(updateUser.update(eq(id), any()))
+                .thenThrow(new LoginAlreadyExistsException("takenlogin"));
+
+        mockMvc.perform(put("/api/v1/users/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validUpdateRequest())))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.type").value(containsString("/errors/login-conflict")));
     }
 
     @Test
