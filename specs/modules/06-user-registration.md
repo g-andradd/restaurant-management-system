@@ -28,6 +28,8 @@ public interface RegisterUserUseCase {
 - The use case:
     1. Checks `userRepository.existsByEmail(email)` — if true, throws
        `EmailAlreadyExistsException`.
+    2. Checks `userRepository.existsByLogin(login)` — if true, throws
+       `LoginAlreadyExistsException`.
     2. Hashes the password via `PasswordEncoderPort.encode(plain)`.
     3. Creates the User via `User.create(...)`.
     4. Persists via `userRepository.save(...)`.
@@ -73,6 +75,8 @@ The BCrypt adapter wraps `BCryptPasswordEncoder` (cost 12) from
   body `UserResponse` (no password).
 - Conflict (duplicate email): `409` with ProblemDetail
   `type=/errors/email-conflict`.
+- Conflict (duplicate login): `409` with ProblemDetail
+  `type=/errors/login-conflict`.
 - Validation failure: `400` with ProblemDetail `type=/errors/validation`
   and `errors` array.
 

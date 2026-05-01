@@ -15,4 +15,5 @@ interface SpringDataUserRepository extends JpaRepository<UserJpaEntity, UUID> {
     List<UserJpaEntity> findByNameContainingIgnoreCase(String name);
 
     boolean existsByEmail(String email);
+    boolean existsByLogin(String login);
 }

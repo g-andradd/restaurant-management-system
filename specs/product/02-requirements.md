@@ -33,6 +33,10 @@ database lookup is sufficient.
 Two users cannot share the same email. A duplicate attempt returns
 a conflict error.
 
+### FR08 — Login uniqueness
+Two users cannot share the same login. Duplicate login attempts in
+registration or profile update return a conflict error.
+
 ## Non-Functional Requirements (NFR)
 
 ### NFR01 — Stack
