@@ -103,6 +103,33 @@ Both advices coexist without ordering concerns as long as the
 handled exception types are disjoint. See `04-error-handling.md`
 for the full mapping table.
 
+### Handler ordering (CRITICAL)
+
+When multiple `@RestControllerAdvice` classes coexist, Spring picks
+the matching `@ExceptionHandler` based on **scan order** by default.
+This order is unreliable — it differs between in-process tests and
+packaged JARs.
+
+Always declare `@Order` explicitly on every advice:
+
+- `infrastructure.adapter.in.web.DomainExceptionHandler`:
+  `@Order(1)` — domain exceptions are specific, must match first.
+- `shared.exception.GlobalExceptionHandler`:
+  `@Order(Ordered.LOWEST_PRECEDENCE)` — contains the
+  `@ExceptionHandler(Exception.class)` catch-all, must run last.
+
+A new advice introduced in a future module sits between these two:
+use `@Order(N)` where N is greater than 1 and less than
+`Ordered.LOWEST_PRECEDENCE`. Pick incremental ints (e.g. `@Order(2)`)
+and document the choice in the advice's class-level Javadoc.
+
+This matters because: without explicit ordering, the catch-all in
+`GlobalExceptionHandler` may match domain exceptions before
+`DomainExceptionHandler` gets a chance, turning every business
+exception into a 500 in production despite tests passing locally.
+This bug was discovered in M11 (Newman against the packaged JAR
+revealed it) — see NOTES.md.
+
 ## Testing
 - Unit tests for domain and use cases (no Spring context — plain
   JUnit 5 + AssertJ + Mockito).
