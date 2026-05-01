@@ -195,3 +195,44 @@ says otherwise — flag in M07's plan if relevant.
   is verifiable in isolation"). Could be removed in M10 cleanup
   pass, but its endpoints are not security-relevant since
   GlobalExceptionHandlerTest uses @WithMockUser.
+
+## 2026-04-30 — M11: Docker, Postman, README + critical bug fix
+
+- M11: Multi-stage Dockerfile, docker-compose with Postgres
+  healthcheck and JWT_SECRET fail-fast, Postman collection with
+  25 requests / 66 assertions across 7 folders, README in 11
+  sections. 100 tests still green; Newman fully green.
+
+- M11 surfaced a LATENT bug introduced in M07 (and silently
+  inherited through M08, M09, M09b, M10): both @RestControllerAdvice
+  classes (GlobalExceptionHandler and DomainExceptionHandler) had
+  no explicit @Order. In-process Spring tests scanned classes in
+  one order; the packaged JAR scanned in another. In the JAR, the
+  catch-all `@ExceptionHandler(Exception.class)` in
+  GlobalExceptionHandler matched FIRST and turned every business
+  exception (EmailAlreadyExists, UserNotFound, InvalidCredentials,
+  etc.) into 500 instead of the correct 4xx.
+
+  Fix:
+  - DomainExceptionHandler → @Order(1)
+  - GlobalExceptionHandler → @Order(Ordered.LOWEST_PRECEDENCE)
+
+  Convention added to 03-conventions.md: every @RestControllerAdvice
+  must carry an explicit @Order. New advices sit between 1 and
+  LOWEST_PRECEDENCE.
+
+  This is the most important kind of finding from end-to-end
+  delivery testing: a bug that ALL automated tests missed because
+  they exercise a different classpath order than production. The
+  Newman/Docker-Compose flow caught it on the first real run.
+
+- M11: docker-compose.yml required quoting around the
+  ${JWT_SECRET:?...} interpolation because the message contains a
+  colon (": generate with"). Without quotes, YAML parser treats
+  the colon as a key/value separator. Fixed in the same commit.
+
+- M11: pgdata volume must be cleared (docker compose down -v)
+  between test runs of the Postman collection. Each run inserts
+  the seed admin and customer; rerunning without volume reset
+  yields 409 on the seed steps and cascades to subsequent failures.
+  Documented in README.

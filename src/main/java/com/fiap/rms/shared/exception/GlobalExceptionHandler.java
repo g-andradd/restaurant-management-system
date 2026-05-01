@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -17,7 +19,13 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 
+/**
+ * Catch-all handler for framework exceptions.
+ * Must run AFTER all domain-specific @ControllerAdvice beans (DomainExceptionHandler).
+ * The @Order(LOWEST_PRECEDENCE) guarantees this regardless of classpath scan order in the packaged JAR.
+ */
 @RestControllerAdvice
+@Order(Ordered.LOWEST_PRECEDENCE)
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
