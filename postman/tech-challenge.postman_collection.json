@@ -1,0 +1,866 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Tech Challenge — User Management API",
+    "description": "Covers all acceptance criteria for FIAP Tech Challenge Phase 1 (M01–M10).\nRun folders in order on a fresh database. Folder 0 must run first to seed the admin and capture the JWT token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "0 — Auth setup",
+      "description": "Seeds the admin user and captures the JWT token used by all subsequent protected requests. MUST run first.",
+      "item": [
+        {
+          "name": "Register admin (seed)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Tech Admin\",\n  \"email\": \"admin@techchallenge.com\",\n  \"login\": \"techadmin\",\n  \"password\": \"Admin@1234\",\n  \"role\": \"ADMIN\",\n  \"address\": {\n    \"street\": \"Av. Paulista\",\n    \"number\": \"1000\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01310-100\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"id present\", () => pm.expect(json.id).to.be.a(\"string\"));",
+                  "pm.test(\"no password in response\", () => pm.expect(json).to.not.have.property(\"password\"));",
+                  "pm.test(\"no passwordHash in response\", () => pm.expect(json).to.not.have.property(\"passwordHash\"));",
+                  "pm.environment.set(\"adminId\", json.id);",
+                  "pm.environment.set(\"adminCreatedAt\", json.createdAt);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login admin",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"login\": \"techadmin\",\n  \"password\": \"Admin@1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"authenticated true\", () => pm.expect(json.authenticated).to.be.true);",
+                  "pm.test(\"token present\", () => pm.expect(json.token).to.be.a(\"string\"));",
+                  "pm.test(\"role present\", () => pm.expect(json.role).to.equal(\"ADMIN\"));",
+                  "pm.test(\"expiresIn present\", () => pm.expect(json.expiresIn).to.be.a(\"number\"));",
+                  "pm.environment.set(\"token\", json.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login admin — wrong password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"login\": \"techadmin\",\n  \"password\": \"WrongPassword@1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 401\", () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"unauthorized type\", () => pm.expect(json.type).to.include(\"/errors/unauthorized\"));",
+                  "pm.test(\"detail present\", () => pm.expect(json.detail).to.equal(\"Credenciais inválidas.\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login — unknown user",
+          "description": "Non-existing login returns 401 with an identical body to wrong-password — the server does not reveal whether the user exists.",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"login\": \"ghostuser99\",\n  \"password\": \"WrongPass@1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 401\", () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"unauthorized type\", () => pm.expect(json.type).to.include(\"/errors/unauthorized\"));",
+                  "pm.test(\"detail same as wrong-password\", () => pm.expect(json.detail).to.equal(\"Credenciais inválidas.\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1 — User registration",
+      "description": "Public endpoint tests — no token required. Registers a customer and a restaurant owner for use in later folders.",
+      "item": [
+        {
+          "name": "Register customer (valid)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@example.com\",\n  \"login\": \"joaosilva\",\n  \"password\": \"Senha@123\",\n  \"role\": \"CUSTOMER\",\n  \"address\": {\n    \"street\": \"Rua das Flores\",\n    \"number\": \"42\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01310-100\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"id present\", () => pm.expect(json.id).to.be.a(\"string\"));",
+                  "pm.test(\"name correct\", () => pm.expect(json.name).to.equal(\"João Silva\"));",
+                  "pm.test(\"no password in response\", () => pm.expect(json).to.not.have.property(\"password\"));",
+                  "pm.environment.set(\"customerId\", json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register restaurant owner (valid)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Carlos Restaurante\",\n  \"email\": \"carlos@restaurant.com\",\n  \"login\": \"carlosrest\",\n  \"password\": \"Senha@123\",\n  \"role\": \"RESTAURANT_OWNER\",\n  \"address\": {\n    \"street\": \"Rua Consolação\",\n    \"number\": \"200\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01302-000\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"id present\", () => pm.expect(json.id).to.be.a(\"string\"));",
+                  "pm.test(\"role is RESTAURANT_OWNER\", () => pm.expect(json.role).to.equal(\"RESTAURANT_OWNER\"));",
+                  "pm.environment.set(\"ownerId\", json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register duplicate email",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"João Silva 2\",\n  \"email\": \"joao@example.com\",\n  \"login\": \"joaosilva2\",\n  \"password\": \"Senha@123\",\n  \"role\": \"CUSTOMER\",\n  \"address\": {\n    \"street\": \"Rua das Flores\",\n    \"number\": \"42\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01310-100\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"email conflict type\", () => pm.expect(json.type).to.include(\"/errors/email-conflict\"));",
+                  "pm.test(\"status field 409\", () => pm.expect(json.status).to.equal(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register missing required field",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"\",\n  \"email\": \"newuser@example.com\",\n  \"login\": \"newuser1\",\n  \"password\": \"Senha@123\",\n  \"role\": \"CUSTOMER\",\n  \"address\": {\n    \"street\": \"Rua A\",\n    \"number\": \"1\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01000-000\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"validation type\", () => pm.expect(json.type).to.include(\"/errors/validation\"));",
+                  "pm.test(\"errors array\", () => pm.expect(json.errors).to.be.an(\"array\").that.is.not.empty);",
+                  "pm.test(\"name field flagged\", () => pm.expect(json.errors.some(e => e.field === \"name\")).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register invalid role",
+          "description": "Sends role: null to trigger @NotNull validation — the server returns 400 with a ValidationProblemDetail.",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Ana Teste\",\n  \"email\": \"ana@example.com\",\n  \"login\": \"anatesteuser\",\n  \"password\": \"Senha@123\",\n  \"role\": null,\n  \"address\": {\n    \"street\": \"Rua B\",\n    \"number\": \"2\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01000-000\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"validation type\", () => pm.expect(json.type).to.include(\"/errors/validation\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2 — Update user data",
+      "description": "Protected requests — inherit the collection-level Bearer token captured in Folder 0.",
+      "item": [
+        {
+          "name": "Update existing user",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Tech Admin Updated\",\n  \"email\": \"admin@techchallenge.com\",\n  \"login\": \"techadmin\",\n  \"address\": {\n    \"street\": \"Rua Augusta\",\n    \"number\": \"500\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01305-100\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{adminId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{adminId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"name updated\", () => pm.expect(json.name).to.equal(\"Tech Admin Updated\"));",
+                  "pm.test(\"updatedAt present\", () => pm.expect(json.updatedAt).to.be.a(\"string\"));",
+                  "const createdAt = new Date(pm.environment.get(\"adminCreatedAt\"));",
+                  "const updatedAt = new Date(json.updatedAt);",
+                  "pm.test(\"updatedAt >= createdAt\", () => pm.expect(updatedAt.getTime()).to.be.at.least(createdAt.getTime()));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update non-existing user",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Ghost User\",\n  \"email\": \"ghost@example.com\",\n  \"login\": \"ghostlogin\",\n  \"address\": {\n    \"street\": \"Rua X\",\n    \"number\": \"1\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01000-000\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "00000000-0000-0000-0000-000000000000"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"error type present\", () => pm.expect(json.type).to.include(\"/errors/\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update payload with extra password field",
+          "description": "The server's UpdateUserRequest DTO has no password field; Jackson silently ignores the extra key. The response must be 200 and must not contain password.",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Tech Admin Updated\",\n  \"email\": \"admin@techchallenge.com\",\n  \"login\": \"techadmin\",\n  \"password\": \"HackerPassword@1\",\n  \"address\": {\n    \"street\": \"Rua Augusta\",\n    \"number\": \"500\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01305-100\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{adminId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{adminId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"no password in response\", () => pm.expect(json).to.not.have.property(\"password\"));",
+                  "pm.test(\"no passwordHash in response\", () => pm.expect(json).to.not.have.property(\"passwordHash\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login with old password after update",
+          "description": "Proves the update endpoint did NOT change the password — login with the original 'Admin@1234' must still return 200.",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"login\": \"techadmin\",\n  \"password\": \"Admin@1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200 — password unchanged\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"authenticated\", () => pm.expect(json.authenticated).to.be.true);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3 — Change password",
+      "description": "Uses {{customerId}} set in Folder 1. Changes the customer's password then verifies login with the new credential.",
+      "item": [
+        {
+          "name": "Change password — valid",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"newPassword\": \"NovaSenha@1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{customerId}}/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{customerId}}", "password"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login with new password",
+          "description": "Smoke check — verifies the password change actually took effect.",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"login\": \"joaosilva\",\n  \"password\": \"NovaSenha@1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"authenticated with new password\", () => pm.expect(json.authenticated).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change password — non-existing user",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"newPassword\": \"ValidPass@1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/00000000-0000-0000-0000-000000000000/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "00000000-0000-0000-0000-000000000000", "password"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"error type present\", () => pm.expect(json.type).to.include(\"/errors/\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change password — weak password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"newPassword\": \"weak\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{customerId}}/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{customerId}}", "password"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"validation type\", () => pm.expect(json.type).to.include(\"/errors/validation\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4 — Delete user",
+      "description": "Deletes {{ownerId}} (set in Folder 1). The admin and customer remain available for Folder 5 searches.",
+      "item": [
+        {
+          "name": "Delete existing user",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{ownerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{ownerId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete non-existing user",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "00000000-0000-0000-0000-000000000000"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"error type present\", () => pm.expect(json.type).to.include(\"/errors/\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5 — Search by name",
+      "description": "At this point the database has admin (Tech Admin Updated) and customer (João Silva). Owner was deleted in Folder 4.",
+      "item": [
+        {
+          "name": "Search — multiple matches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users?name=a",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                { "key": "name", "value": "a" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"result is array\", () => pm.expect(json).to.be.an(\"array\"));",
+                  "pm.test(\"at least one result\", () => pm.expect(json.length).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search — no match",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users?name=xyzzy999",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                { "key": "name", "value": "xyzzy999" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"empty array\", () => pm.expect(json).to.be.an(\"array\").that.is.empty);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search — case-insensitive",
+          "description": "Searches 'ADMIN' (uppercase) and expects to find 'Tech Admin Updated'.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users?name=ADMIN",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                { "key": "name", "value": "ADMIN" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"case-insensitive match found\", () => pm.expect(json).to.be.an(\"array\").with.lengthOf.above(0));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6 — Authorization edge cases",
+      "description": "Validates JWT filter behavior. All three requests use auth:noauth so the collection-level Bearer token is NOT injected. Auth headers (or their absence) are set explicitly on each request.",
+      "item": [
+        {
+          "name": "Protected — no Authorization header",
+          "description": "No Authorization header at all. The filter skips (nothing to parse) and the entry point fires with 401.",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{adminId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{adminId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 401\", () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"unauthorized type\", () => pm.expect(json.type).to.include(\"/errors/unauthorized\"));",
+                  "pm.test(\"status field 401\", () => pm.expect(json.status).to.equal(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Protected — malformed token",
+          "description": "Authorization header present but the token is not a valid JWT structure. parseToken() returns Optional.empty(), entry point fires with 401.",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer not.a.jwt.token" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{adminId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{adminId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 401\", () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"unauthorized type\", () => pm.expect(json.type).to.include(\"/errors/unauthorized\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Protected — wrong-signature token",
+          "description": "Well-formed JWT (valid header+payload base64url) but signed with a DIFFERENT key than the server's JWT_SECRET. JJWT throws SignatureException, caught in JjwtTokenProviderAdapter.parseToken(), returns Optional.empty() → 401. This is the portable equivalent of an expired-token test: same filter path, no dependency on runtime JWT_SECRET.",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{adminId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{adminId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 401\", () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"unauthorized type\", () => pm.expect(json.type).to.include(\"/errors/unauthorized\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
