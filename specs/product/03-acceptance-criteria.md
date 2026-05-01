@@ -6,6 +6,7 @@ delivered. The Postman collection must cover all of them.
 ## User registration
 - [ ] Valid registration returns 201 with the created user (no password).
 - [ ] Registration with an existing email returns 409 (Conflict).
+- [ ] Registration with an existing login returns 409 (Conflict).
 - [ ] Registration with a missing required field returns 400 with a
   ProblemDetail pointing to the invalid field.
 - [ ] Registration with an invalid user role returns 400.
@@ -14,6 +15,7 @@ delivered. The Postman collection must cover all of them.
 - [ ] Valid update returns 200 with the updated user.
 - [ ] Update refreshes `updatedAt`.
 - [ ] Update of a non-existing user returns 404.
+- [ ] Update with a login already used by another user returns 409.
 - [ ] Attempting to include a password in this payload is ignored
   or rejected.
 

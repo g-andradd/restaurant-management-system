@@ -2,6 +2,7 @@ package com.fiap.rms.application.usecase;
 
 import com.fiap.rms.application.port.out.UserRepositoryPort;
 import com.fiap.rms.domain.exception.EmailAlreadyExistsException;
+import com.fiap.rms.domain.exception.LoginAlreadyExistsException;
 import com.fiap.rms.domain.exception.UserNotFoundException;
 import com.fiap.rms.domain.model.Address;
 import com.fiap.rms.domain.model.Role;
@@ -21,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class UpdateUserServiceTest {
@@ -81,6 +83,7 @@ class UpdateUserServiceTest {
         service.update(user.getId(), command);
 
         verify(userRepository, never()).existsByEmail(any());
+        verify(userRepository, times(1)).existsByLogin("marianew");
     }
 
     @Test
@@ -110,6 +113,36 @@ class UpdateUserServiceTest {
 
         assertThatThrownBy(() -> service.update(user.getId(), command))
                 .isInstanceOf(EmailAlreadyExistsException.class);
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void update_loginNotChanged_doesNotCallExistsByLogin() {
+        User user = existingUser();
+        UpdateUserCommand command = new UpdateUserCommand(
+                "Maria Nova", "new@example.com", "mariasilva", NEW_ADDRESS);
+
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
+        when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        service.update(user.getId(), command);
+
+        verify(userRepository, never()).existsByLogin(any());
+    }
+
+    @Test
+    void update_loginChangedAndTaken_throwsLoginAlreadyExistsException() {
+        User user = existingUser();
+        UpdateUserCommand command = new UpdateUserCommand(
+                "Maria Silva", "maria@example.com", "takenlogin", ADDRESS);
+
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.existsByLogin("takenlogin")).thenReturn(true);
+
+        assertThatThrownBy(() -> service.update(user.getId(), command))
+                .isInstanceOf(LoginAlreadyExistsException.class);
 
         verify(userRepository, never()).save(any());
     }

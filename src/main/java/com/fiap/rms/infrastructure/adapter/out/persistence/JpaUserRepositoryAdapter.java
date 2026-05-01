@@ -53,6 +53,11 @@ public class JpaUserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
+    public boolean existsByLogin(String login) {
+        return repository.existsByLogin(login);
+    }
+
+    @Override
     public void deleteById(UUID id) {
         repository.deleteById(id);
     }

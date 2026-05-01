@@ -34,7 +34,7 @@ leak out of the adapter.
 - `id UUID PRIMARY KEY`.
 - `name VARCHAR(150) NOT NULL`.
 - `email VARCHAR(255) NOT NULL UNIQUE`.
-- `login VARCHAR(60) NOT NULL`.
+- `login VARCHAR(60) NOT NULL UNIQUE`.
 - `password_hash VARCHAR(255) NOT NULL`.
 - `role VARCHAR(30) NOT NULL` — stored as enum string.
 - `street VARCHAR(150) NOT NULL`.
@@ -45,6 +45,7 @@ leak out of the adapter.
 - `updated_at TIMESTAMP NOT NULL`.
 - Indexes:
     - Unique index on `email`.
+    - Unique index on `login`.
     - Index on `LOWER(name)` for the case-insensitive search.
 
 ## Flyway migration
